@@ -2,14 +2,16 @@ services:
   userprofileservice:
     image: userprofileservice
     build:
-      context: ./UserProfileService
+      context: .
+      dockerfile: UserProfileService/Dockerfile
     ports:
       - "5001:80"
 
   tweetpostingservice:
     image: tweetpostingservice
     build:
-      context: ./TweetPostingService
+      context: .
+      dockerfile: TweetPostingService/Dockerfile
     ports:
       - "5002:80"
     depends_on:
@@ -18,7 +20,8 @@ services:
   interactionservice:
     image: interactionservice
     build:
-      context: ./InteractionService
+      context: .
+      dockerfile: InteractionService/Dockerfile
     ports:
       - "5003:80"
     depends_on:
@@ -32,7 +35,8 @@ services:
   apigateway:
     image: apigateway
     build:
-      context: ./APIGateway
+      context: .
+      dockerfile: APIGateway/Dockerfile
     ports:
       - "5000:80"
     depends_on:

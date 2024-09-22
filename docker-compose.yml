@@ -1,4 +1,9 @@
 services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"   # RabbitMQ message broker port
+      - "15672:15672" # RabbitMQ management UI
   userprofileservice:
     image: userprofileservice
     build:
@@ -6,6 +11,8 @@ services:
       dockerfile: UserProfileService/Dockerfile
     ports:
       - "5001:80"
+    depends_on:
+      - rabbitmq
 
   tweetpostingservice:
     image: tweetpostingservice
@@ -27,11 +34,7 @@ services:
     depends_on:
       - tweetpostingservice
       - userprofileservice
-  rabbitmq:
-    image: "rabbitmq:3-management"
-    ports:
-      - "5672:5672"   # RabbitMQ message broker port
-      - "15672:15672" # RabbitMQ management UI
+  
   apigateway:
     image: apigateway
     build:

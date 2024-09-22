@@ -19,8 +19,7 @@ namespace UserProfileService.Services
             _channel = channel;
             var factory = new ConnectionFactory() { HostName = "rabbitmq" };
 
-            // Try connecting with retry logic
-            for (int i = 0; i < RetryCount; i++)
+            for (var i = 0; i < RetryCount; i++)
             {
                 try
                 {
@@ -51,7 +50,6 @@ namespace UserProfileService.Services
                         }
                         catch (Exception ex)
                         {
-                            // Log the error and continue processing other messages
                             Console.WriteLine($"[Error] Failed to process message: {ex.Message}");
                         }
                     };
@@ -83,38 +81,32 @@ namespace UserProfileService.Services
                 if (tweetEvent.EventType == "TweetPosted")
                 {
                     Console.WriteLine($"[UserProfileService] Tweet posted: {tweetEvent.Content} by user {tweetEvent.UserId}");
-                    // Perform additional logic here if necessary (e.g., track user activity)
                 }
                 else if (tweetEvent.EventType == "TweetDeleted")
                 {
                     Console.WriteLine($"[UserProfileService] Tweet deleted: {tweetEvent.Content} by user {tweetEvent.UserId}");
-                    // Perform additional logic here if necessary
                 }
             }
             catch (Exception ex)
             {
-                // Handle any processing exceptions
                 Console.WriteLine($"[Error] Error handling tweet event: {ex.Message}");
             }
         }
 
         public void StartConsuming()
         {
-            // No action needed here as the consumer is set up during instantiation.
-            // This method could be expanded if you need to start and stop consumers dynamically.
+            
         }
 
         public void Dispose()
         {
-            // Clean up connections when the service is disposed
             try
             {
-                _channel?.Close();
-                _connection?.Close();
+                _channel.Close();
+                _connection.Close();
             }
             catch (Exception ex)
             {
-                // Log any cleanup exceptions
                 Console.WriteLine($"[Error] Error during RabbitMQ connection disposal: {ex.Message}");
             }
         }

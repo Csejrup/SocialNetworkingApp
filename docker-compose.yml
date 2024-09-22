@@ -1,0 +1,41 @@
+services:
+  userprofileservice:
+    image: userprofileservice
+    build:
+      context: ./UserProfileService
+    ports:
+      - "5001:80"
+
+  tweetpostingservice:
+    image: tweetpostingservice
+    build:
+      context: ./TweetPostingService
+    ports:
+      - "5002:80"
+    depends_on:
+      - userprofileservice
+
+  interactionservice:
+    image: interactionservice
+    build:
+      context: ./InteractionService
+    ports:
+      - "5003:80"
+    depends_on:
+      - tweetpostingservice
+      - userprofileservice
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"   # RabbitMQ message broker port
+      - "15672:15672" # RabbitMQ management UI
+  apigateway:
+    image: apigateway
+    build:
+      context: ./APIGateway
+    ports:
+      - "5000:80"
+    depends_on:
+      - userprofileservice
+      - tweetpostingservice
+      - interactionservice

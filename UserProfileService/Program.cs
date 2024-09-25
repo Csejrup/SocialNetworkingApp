@@ -38,8 +38,8 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.EnsureCreated(); // For in-memory or testing environments
 }
 
-var messageBusConsumer = app.Services.GetService<IMessageBusConsumer>();
-messageBusConsumer?.StartConsuming();
+//var messageBusConsumer = app.Services.GetService<IMessageBusConsumer>();
+//messageBusConsumer?.StartConsuming();
 
 if (app.Environment.IsDevelopment())
 {

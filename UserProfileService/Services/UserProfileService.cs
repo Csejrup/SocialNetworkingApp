@@ -1,3 +1,4 @@
+using Monitoring;
 using UserProfileService.Dtos;
 using UserProfileService.Models;
 using UserProfileService.Repositories;
@@ -8,6 +9,8 @@ namespace UserProfileService.Services
     {
         public async Task RegisterUserAsync(UserProfileDto userProfileDto)
         {
+            using var activity = LoggingService.activitySource.StartActivity();
+
             var userProfile = new UserProfile
             {
                 Username = userProfileDto.Username,
@@ -20,8 +23,14 @@ namespace UserProfileService.Services
 
         public async Task<UserProfileDto?> GetUserProfileAsync(int id)
         {
+            
+            using var activity = LoggingService.activitySource.StartActivity();
             var userProfile = await userProfileRepository.GetUserProfileByIdAsync(id);
-            if (userProfile == null) return null;
+            if (userProfile == null)
+            {
+                LoggingService.Log.AddContext().Debug("Could not find user with id: " + id);
+                return null;
+            }
 
             return new UserProfileDto
             {
@@ -33,17 +42,20 @@ namespace UserProfileService.Services
 
         public async Task FollowUserAsync(int userId, int userIdToFollow)
         {
+            using var activity = LoggingService.activitySource.StartActivity();
             await userProfileRepository.FollowUserAsync(userId, userIdToFollow);
         }
 
         public async Task UnfollowUserAsync(int userId, int userIdToUnfollow)
         {
+            using var activity = LoggingService.activitySource.StartActivity();
             await userProfileRepository.UnfollowUserAsync(userId, userIdToUnfollow);
         }
 
         // New method to get followers
         public async Task<List<int>> GetFollowersAsync(int userId)
         {
+            using var activity = LoggingService.activitySource.StartActivity();
             return await userProfileRepository.GetFollowersAsync(userId);
         }
     }

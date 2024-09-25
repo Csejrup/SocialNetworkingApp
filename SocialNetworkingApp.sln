@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractionService", "Inter
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIGateway", "APIGateway\APIGateway.csproj", "{865BEA58-36E8-455E-9994-C2D3F86A887D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring", "Monitoring\Monitoring.csproj", "{8799D66E-942F-4AC1-BD63-E518AA2184D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{865BEA58-36E8-455E-9994-C2D3F86A887D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{865BEA58-36E8-455E-9994-C2D3F86A887D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{865BEA58-36E8-455E-9994-C2D3F86A887D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8799D66E-942F-4AC1-BD63-E518AA2184D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8799D66E-942F-4AC1-BD63-E518AA2184D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8799D66E-942F-4AC1-BD63-E518AA2184D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8799D66E-942F-4AC1-BD63-E518AA2184D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

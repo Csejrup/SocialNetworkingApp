@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using TweetPostingService.Models;
 
 namespace TweetPostingService.Services
@@ -24,7 +27,29 @@ namespace TweetPostingService.Services
             var message = JsonSerializer.Serialize(tweetEvent);
             var body = Encoding.UTF8.GetBytes(message);
 
+          
+                
             _channel.BasicPublish(exchange: "tweet_events", routingKey: "", basicProperties: null, body: body);
+        }
+        
+        public void PublishTweetEventWithActivityContext(TweetEvent tweetEvent, Activity activity)
+        {
+            var message = JsonSerializer.Serialize(tweetEvent);
+            var body = Encoding.UTF8.GetBytes(message);
+
+            var props = _channel.CreateBasicProperties();
+          
+            var activityContext = activity?.Context ?? Activity.Current?.Context ?? default;
+            var propagationContext = new PropagationContext(activityContext, Baggage.Current);
+            var propagator = new TraceContextPropagator();
+        
+            propagator.Inject(propagationContext, props, (r, key, value) =>
+            {
+                r.Headers.Add(key,value);
+            });
+
+            
+            _channel.BasicPublish(exchange: "tweet_events", routingKey: "", basicProperties: props, body: body);
         }
     }
 }

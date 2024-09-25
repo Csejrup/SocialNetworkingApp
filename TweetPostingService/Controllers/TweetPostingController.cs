@@ -1,4 +1,7 @@
+using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Monitoring;
 using TweetPostingService.Dtos;
 using TweetPostingService.Services;
 
@@ -11,8 +14,15 @@ namespace TweetPostingService.Controllers
         [HttpPost("post")]
         public async Task<IActionResult> PostTweet([FromBody] TweetDto tweetDto)
         {
+            var parentContext = LoggingService.ExtractPropagationContextFromHttpRequest(Request);
+            using var activity = LoggingService.activitySource.StartActivity("POST Tweet/post", ActivityKind.Consumer, parentContext.ActivityContext);
+
+            LoggingService.Log.AddContext().Information($"POST Tweet/post endpoint received request: {JsonSerializer.Serialize(tweetDto)}");
+
+            
             if (tweetDto == null || string.IsNullOrEmpty(tweetDto.Content))
             {
+                LoggingService.Log.Warning("Tweet content cannot be empty.");
                 return BadRequest("Tweet content cannot be empty.");
             }
 
@@ -24,6 +34,9 @@ namespace TweetPostingService.Controllers
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetTweetsByUser(int userId)
         {
+            
+            LoggingService.Log.AddContext().Information($"GET Tweet/user/userid endpoint received request: {JsonSerializer.Serialize(userId)}");
+
             if (userId <= 0)
             {
                 return BadRequest("Invalid user ID.");
@@ -41,6 +54,9 @@ namespace TweetPostingService.Controllers
         [HttpDelete("{tweetId}")]
         public async Task<IActionResult> DeleteTweet(int tweetId, int userId)
         {
+            
+            LoggingService.Log.AddContext().Information($"DELETE Tweet/id endpoint received request: {JsonSerializer.Serialize(tweetId)}");
+
             await tweetService.DeleteTweetAsync(tweetId, userId);
             return Ok("Tweet deleted successfully.");
         }

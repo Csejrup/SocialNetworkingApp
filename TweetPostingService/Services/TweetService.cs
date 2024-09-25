@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Monitoring;
 using TweetPostingService.Dtos;
 using TweetPostingService.Models;
 using TweetPostingService.Repositories;
@@ -13,13 +15,27 @@ namespace TweetPostingService.Services
     {
         public async Task PostTweetAsync(TweetDto tweetDto)
         {
-            // Fetch user info from UserProfileService
-            var user = await httpClient.GetFromJsonAsync<UserProfileDto>($"http://userprofileservice/api/userprofile/{tweetDto.UserId}");
-
-            if (user == null)
+            using var _ = LoggingService.activitySource.StartActivity();
+            UserProfileDto? user = null;
+            
+            using (var activity = LoggingService.activitySource.StartActivity())
             {
-                throw new Exception($"User with ID {tweetDto.UserId} does not exist.");
+                
+                // Fetch user info from UserProfileService
+                var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"http://userprofileservice/api/userprofile/{tweetDto.UserId}");
+                request = LoggingService.AddActivityInfoToHttpRequest(request, activity);
+
+                var res = await httpClient.SendAsync(request);
+                var content = res.Content.ReadAsStringAsync().Result;
+                user = JsonSerializer.Deserialize<UserProfileDto>(content);
+                
+                if (user == null)
+                {
+                    throw new Exception($"User with ID {tweetDto.UserId} does not exist.");
+                }
             }
+            
 
             var tweet = new Tweet
             {
@@ -27,23 +43,35 @@ namespace TweetPostingService.Services
                 Content = tweetDto.Content,
                 CreatedAt = DateTime.UtcNow
             };
-
-            await tweetRepository.AddTweetAsync(tweet);
-
-            // Publish the tweet event to RabbitMQ
-            var tweetEvent = new TweetEvent
+            
+            using (var activityTweet = LoggingService.activitySource.StartActivity())
             {
-                UserId = tweetDto.UserId,
-                TweetId = tweet.Id,
-                Content = tweet.Content,
-                EventType = "TweetPosted"
-            };
+                await tweetRepository.AddTweetAsync(tweet);
+            }
 
-            messageBusPublisher.PublishTweetEvent(tweetEvent);
+
+            using (var msBusActivity = LoggingService.activitySource.StartActivity())
+            {
+                
+                // Publish the tweet event to RabbitMQ
+                var tweetEvent = new TweetEvent
+                {
+                    UserId = tweetDto.UserId,
+                    TweetId = tweet.Id,
+                    Content = tweet.Content,
+                    EventType = "TweetPosted"
+                };
+
+                messageBusPublisher.PublishTweetEventWithActivityContext(tweetEvent, msBusActivity);
+                
+            }
+
+       
         }
 
         public async Task<List<TweetDto>> GetTweetsByUserAsync(int userId)
         {
+            using var _ = LoggingService.activitySource.StartActivity();
             // Get all tweets from a specific user
             var tweets = await tweetRepository.GetTweetsByUserIdAsync(userId);
 
@@ -56,6 +84,8 @@ namespace TweetPostingService.Services
 
         public async Task DeleteTweetAsync(int tweetId, int userId)
         {
+            using var _ = LoggingService.activitySource.StartActivity();
+
             var tweet = await tweetRepository.GetTweetByIdAsync(tweetId);
             if (tweet == null || tweet.UserId != userId)
             {
@@ -64,16 +94,21 @@ namespace TweetPostingService.Services
 
             await tweetRepository.DeleteTweetAsync(tweet);
 
-            // Publish the tweet deleted event to RabbitMQ
-            var tweetEvent = new TweetEvent
-            {
-                UserId = tweet.UserId,
-                TweetId = tweet.Id,
-                Content = tweet.Content,
-                EventType = "TweetDeleted"
-            };
 
-            messageBusPublisher.PublishTweetEvent(tweetEvent);
+            using (var activity = LoggingService.activitySource.StartActivity())
+            {
+                // Publish the tweet deleted event to RabbitMQ
+                var tweetEvent = new TweetEvent
+                {
+                    UserId = tweet.UserId,
+                    TweetId = tweet.Id,
+                    Content = tweet.Content,
+                    EventType = "TweetDeleted"
+                };
+                messageBusPublisher.PublishTweetEventWithActivityContext(tweetEvent, activity);
+
+            }
+
         }
     }
 }

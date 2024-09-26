@@ -4,6 +4,7 @@ services:
     ports:
       - "5672:5672"   # RabbitMQ message broker port
       - "15672:15672" # RabbitMQ management UI
+
   userprofileservice:
     image: userprofileservice
     build:
@@ -13,6 +14,14 @@ services:
       - "5001:80"
     depends_on:
       - rabbitmq
+    deploy:
+      replicas: 2  # Two replicas for x-axis scaling
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure
 
   tweetpostingservice:
     image: tweetpostingservice
@@ -23,6 +32,14 @@ services:
       - "5002:80"
     depends_on:
       - userprofileservice
+    deploy:
+      replicas: 2  # Two replicas for x-axis scaling
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure
 
   interactionservice:
     image: interactionservice
@@ -34,7 +51,15 @@ services:
     depends_on:
       - tweetpostingservice
       - userprofileservice
-  
+    deploy:
+      replicas: 2  # Two replicas for x-axis scaling
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure
+
   apigateway:
     image: apigateway
     build:
@@ -46,3 +71,11 @@ services:
       - userprofileservice
       - tweetpostingservice
       - interactionservice
+    deploy:
+      replicas: 2  # Two replicas for x-axis scaling
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure

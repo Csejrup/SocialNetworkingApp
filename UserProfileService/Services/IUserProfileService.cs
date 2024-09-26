@@ -9,5 +9,8 @@ namespace UserProfileService.Services
         Task FollowUserAsync(int userId, int userIdToFollow);
         Task UnfollowUserAsync(int userId, int userIdToUnfollow);
         Task<List<int>> GetFollowersAsync(int userId);
+        
+        Task CreateDb();
+
     }
 }

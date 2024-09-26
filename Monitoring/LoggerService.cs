@@ -18,10 +18,14 @@ public static class LoggingService
     public static ILogger Log => Serilog.Log.Logger;
     static LoggingService()
     {
+        Console.WriteLine("LOOGOGOGOGGOGOGOOGOG");
+        Console.WriteLine(ServiceName);
+        Console.WriteLine(activitySource.Name);
+
         // Open telemetry config
         tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(activitySource.Name)
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(ServiceName))
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(activitySource.Name))
             .AddZipkinExporter(options =>
             {
                 options.Endpoint = new Uri("http://zipkin:9411/api/v2/spans"); // Zipkin 
@@ -35,9 +39,7 @@ public static class LoggingService
             .WriteTo.Seq("http://seq:5341") // Seq running on this address
             .Enrich.FromLogContext()
             .CreateLogger();
-            
-
-
+        
     }
 
 

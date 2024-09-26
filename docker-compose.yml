@@ -1,41 +1,24 @@
 services:
-  rabbitmq:
-    image: "rabbitmq:3-management"
-    ports:
-      - "5672:5672"   # RabbitMQ message broker port
-      - "15672:15672" # RabbitMQ management UI
-      
+  
+  userprofile-db:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    environment:
+      MSSQL_SA_PASSWORD: "SuperSecret7!"
+      ACCEPT_EULA: "Y"
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: false
+    volumes:
+      - mssql-data-userprofiles:/var/opt/mssql
+  
+  
+  
   userprofileservice:
     image: userprofileservice
     build:
       context: .
       dockerfile: UserProfileService/Dockerfile
-    ports:
-      - "5001:8080"
     depends_on:
-      - rabbitmq
+      - userprofile-db
 
-  tweetpostingservice:
-    image: tweetpostingservice
-    build:
-      context: .
-      dockerfile: TweetPostingService/Dockerfile
-    ports:
-      - "5002:80"
-    depends_on:
-      - userprofileservice
-
-  interactionservice:
-    image: interactionservice
-    build:
-      context: .
-      dockerfile: InteractionService/Dockerfile
-    ports:
-      - "5003:80"
-    depends_on:
-      - tweetpostingservice
-      - userprofileservice
-  
   apigateway:
     image: apigateway
     build:
@@ -45,8 +28,7 @@ services:
       - "5020:80"
     depends_on:
       - userprofileservice
-      - tweetpostingservice
-      - interactionservice
+      - userprofile-db
 
   # Adding Seq for logging
   seq:
@@ -69,3 +51,4 @@ services:
 
 volumes: 
   seq-data:
+  mssql-data-userprofiles:

@@ -1,10 +1,11 @@
 using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
+using Monitoring;
 using Microsoft.AspNetCore.Mvc;
+using OpenTelemetry.Context.Propagation;
 using UserProfileService.Dtos;
 using UserProfileService.Services;
-using System.Threading.Tasks;
-using Monitoring;
 
 namespace UserProfileService.Controllers
 {
@@ -12,10 +13,27 @@ namespace UserProfileService.Controllers
     [Route("api/[controller]")]
     public class UserProfileController(IUserProfileService userProfileService) : ControllerBase
     {
+        
+        
+        [HttpPost("database")]
+        public async Task<IActionResult> Database()
+        {
+
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
+            using var activity = LoggingService.activitySource.StartActivity("Post UserProfile/database", ActivityKind.Consumer, parentContext.ActivityContext);
+
+            LoggingService.Log.AddContext().Information($"Post UserProfile/database endpoint called");
+
+            await userProfileService.CreateDb();
+            return Ok();
+        }
+        
+        
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUser([FromBody] UserProfileDto userProfile)
         {
-            var parentContext = LoggingService.ExtractPropagationContextFromHttpRequest(Request);
+
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
             using var activity = LoggingService.activitySource.StartActivity("POST UserProfile/register", ActivityKind.Consumer, parentContext.ActivityContext);
 
             LoggingService.Log.AddContext().Information($"POST UserProfile/register endpoint received request: {JsonSerializer.Serialize(userProfile)}");
@@ -30,7 +48,8 @@ namespace UserProfileService.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserProfile(int id)
         {
-            var parentContext = LoggingService.ExtractPropagationContextFromHttpRequest(Request);
+
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
             using var activity = LoggingService.activitySource.StartActivity("GET UserProfile/id", ActivityKind.Consumer, parentContext.ActivityContext);
 
             LoggingService.Log.AddContext().Information($"GET UserProfile/id endpoint called with id: {id}");
@@ -46,7 +65,7 @@ namespace UserProfileService.Controllers
         [HttpPost("{userId}/follow/{userIdToFollow}")]
         public async Task<IActionResult> FollowUser(int userId, int userIdToFollow)
         {
-            var parentContext = LoggingService.ExtractPropagationContextFromHttpRequest(Request);
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
             using var activity = LoggingService.activitySource.StartActivity("GET UserProfile/{userId}/follow/{userIdToFollow}", ActivityKind.Consumer, parentContext.ActivityContext);
 
             LoggingService.Log.AddContext().Information($"GET UserProfile/userId/follow/userIdToFollow endpoint called with userId: {userId} and userIdToFollow: {userIdToFollow}");
@@ -60,7 +79,7 @@ namespace UserProfileService.Controllers
         [HttpPost("{userId}/unfollow/{userIdToUnfollow}")]
         public async Task<IActionResult> UnfollowUser(int userId, int userIdToUnfollow)
         {
-            var parentContext = LoggingService.ExtractPropagationContextFromHttpRequest(Request);
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
             using var activity = LoggingService.activitySource.StartActivity("GET UserProfile/{userId}/follow/{userIdToUnfollow}", ActivityKind.Consumer, parentContext.ActivityContext);
 
             LoggingService.Log.AddContext().Information($"GET UserProfile/userId/follow/userIdToUnfollow endpoint called with userId: {userId} and userIdToFollow: {userIdToUnfollow}");
@@ -76,7 +95,7 @@ namespace UserProfileService.Controllers
         [HttpGet("{userId}/followers")]
         public async Task<IActionResult> GetFollowers(int userId)
         {
-            var parentContext = LoggingService.ExtractPropagationContextFromHttpRequest(Request);
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
             using var activity = LoggingService.activitySource.StartActivity("GET UserProfile/{userId}/followers", ActivityKind.Consumer, parentContext.ActivityContext);
             LoggingService.Log.AddContext().Information($"GET UserProfile/userId/followers endpoint called with userId: {userId}");
 

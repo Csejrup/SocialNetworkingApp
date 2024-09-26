@@ -15,7 +15,6 @@ namespace TweetPostingService.Services
     {
         public async Task PostTweetAsync(TweetDto tweetDto)
         {
-            using var _ = LoggingService.activitySource.StartActivity();
             UserProfileDto? user = null;
             
             using (var activity = LoggingService.activitySource.StartActivity())
@@ -31,14 +30,14 @@ namespace TweetPostingService.Services
                 user = JsonSerializer.Deserialize<UserProfileDto>(content);
                 
                 if (user == null)
-                {
                     throw new Exception($"User with ID {tweetDto.UserId} does not exist.");
-                }
+                
             }
             
 
             var tweet = new Tweet
             {
+                Id = tweetDto.Id,
                 UserId = tweetDto.UserId,
                 Content = tweetDto.Content,
                 CreatedAt = DateTime.UtcNow
@@ -95,7 +94,7 @@ namespace TweetPostingService.Services
             await tweetRepository.DeleteTweetAsync(tweet);
 
 
-            using (var activity = LoggingService.activitySource.StartActivity())
+            using (var activity = LoggingService.activitySource.StartActivity("Publish to message bus"))
             {
                 // Publish the tweet deleted event to RabbitMQ
                 var tweetEvent = new TweetEvent

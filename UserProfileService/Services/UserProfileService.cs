@@ -13,6 +13,7 @@ namespace UserProfileService.Services
 
             var userProfile = new UserProfile
             {
+                Id = userProfileDto.Id,
                 Username = userProfileDto.Username,
                 Email = userProfileDto.Email,
                 Bio = userProfileDto.Bio
@@ -34,6 +35,7 @@ namespace UserProfileService.Services
 
             return new UserProfileDto
             {
+                Id = userProfile.Id,
                 Username = userProfile.Username,
                 Email = userProfile.Email,
                 Bio = userProfile.Bio
@@ -57,6 +59,11 @@ namespace UserProfileService.Services
         {
             using var activity = LoggingService.activitySource.StartActivity();
             return await userProfileRepository.GetFollowersAsync(userId);
+        }
+
+        public async Task CreateDb()
+        {
+            await userProfileRepository.RecreateDatabase();
         }
     }
 }

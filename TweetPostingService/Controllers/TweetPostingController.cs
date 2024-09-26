@@ -14,7 +14,7 @@ namespace TweetPostingService.Controllers
         [HttpPost("post")]
         public async Task<IActionResult> PostTweet([FromBody] TweetDto tweetDto)
         {
-            var parentContext = LoggingService.ExtractPropagationContextFromHttpRequest(Request);
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
             using var activity = LoggingService.activitySource.StartActivity("POST Tweet/post", ActivityKind.Consumer, parentContext.ActivityContext);
 
             LoggingService.Log.AddContext().Information($"POST Tweet/post endpoint received request: {JsonSerializer.Serialize(tweetDto)}");
@@ -35,25 +35,29 @@ namespace TweetPostingService.Controllers
         public async Task<IActionResult> GetTweetsByUser(int userId)
         {
             
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
+            using var activity = LoggingService.activitySource.StartActivity("POST Tweet/post", ActivityKind.Consumer, parentContext.ActivityContext);
+            
             LoggingService.Log.AddContext().Information($"GET Tweet/user/userid endpoint received request: {JsonSerializer.Serialize(userId)}");
 
             if (userId <= 0)
-            {
                 return BadRequest("Invalid user ID.");
-            }
+            
 
             var tweets = await tweetService.GetTweetsByUserAsync(userId);
 
             if (tweets == null || tweets.Count == 0)
-            {
                 return NotFound($"No tweets found for user with ID {userId}.");
-            }
+            
 
             return Ok(tweets);
         }
         [HttpDelete("{tweetId}")]
         public async Task<IActionResult> DeleteTweet(int tweetId, int userId)
         {
+            var parentContext = ActivityHelper.ExtractPropagationContextFromHttpRequest(Request);
+            using var activity = LoggingService.activitySource.StartActivity("POST Tweet/post", ActivityKind.Consumer, parentContext.ActivityContext);
+
             
             LoggingService.Log.AddContext().Information($"DELETE Tweet/id endpoint received request: {JsonSerializer.Serialize(tweetId)}");
 

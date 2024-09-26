@@ -20,4 +20,9 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Monitoring\Monitoring.csproj" />
+      <ProjectReference Include="..\UserProfileService\UserProfileService.csproj" />
+    </ItemGroup>
+
 </Project>

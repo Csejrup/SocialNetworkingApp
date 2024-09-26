@@ -1,6 +1,9 @@
+using System.Diagnostics;
+using System.Text.Json;
 using InteractionService.Dtos;
 using InteractionService.Models;
 using InteractionService.Repositories;
+using Monitoring;
 
 namespace InteractionService.Services
 {
@@ -19,13 +22,22 @@ namespace InteractionService.Services
 
         public async Task LikeTweetAsync(LikeDto likeDto)
         {
-            // Call the TweetPostingService to check if the tweet exists
-            var tweetExists = await _httpClient.GetFromJsonAsync<bool>($"http://tweetpostingservice/api/tweet/{likeDto.TweetId}");
+            
+            using var activity = LoggingService.activitySource.StartActivity();
 
+            var request = new HttpRequestMessage(HttpMethod.Get,
+                $"http://tweetpostingservice/api/tweet/{likeDto.TweetId}");
+            
+            request = ActivityHelper.AddActivityInfoToHttpRequest(request, activity);
+            
+            // Call the TweetPostingService to check if the tweet exists
+            var response = await _httpClient.SendAsync(request);
+            var content = response.Content.ReadAsStringAsync().Result;
+            var tweetExists = JsonSerializer.Deserialize<bool>(content);
+            
             if (!tweetExists)
-            {
                 throw new Exception($"Tweet with ID {likeDto.TweetId} does not exist.");
-            }
+            
 
             var like = new Like
             {
@@ -39,13 +51,20 @@ namespace InteractionService.Services
 
         public async Task CommentOnTweetAsync(CommentDto commentDto)
         {
+            using var activity = LoggingService.activitySource.StartActivity();
+
+            var request = new HttpRequestMessage(HttpMethod.Get,
+                $"http://tweetpostingservice/api/tweet/{commentDto.TweetId}");
+            
+            request = ActivityHelper.AddActivityInfoToHttpRequest(request, activity);
+            
             // Call the TweetPostingService to check if the tweet exists
-            var tweetExists = await _httpClient.GetFromJsonAsync<bool>($"http://tweetpostingservice/api/tweet/{commentDto.TweetId}");
+            var response = await _httpClient.SendAsync(request);
+            var content = response.Content.ReadAsStringAsync().Result;
+            var tweetExists = JsonSerializer.Deserialize<bool>(content);
 
             if (!tweetExists)
-            {
                 throw new Exception($"Tweet with ID {commentDto.TweetId} does not exist.");
-            }
 
             var comment = new Comment
             {
@@ -60,6 +79,7 @@ namespace InteractionService.Services
 
         public async Task<List<CommentDto>> GetCommentsForTweetAsync(int tweetId)
         {
+            using var activity = LoggingService.activitySource.StartActivity();
             var comments = await _commentRepository.GetCommentsByTweetIdAsync(tweetId);
 
             return comments.Select(c => new CommentDto

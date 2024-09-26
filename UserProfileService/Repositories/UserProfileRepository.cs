@@ -1,3 +1,7 @@
+using System.Data;
+using System.Data.Common;
+using System.Text.Json;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Monitoring;
 using UserProfileService.Models;
@@ -7,17 +11,111 @@ namespace UserProfileService.Repositories
 {
     public class UserProfileRepository(UserProfileDbContext context) : IUserProfileRepository
     {
+        private SqlConnection? _connection;
+
+        private DbConnection GetDbConnection()
+        {
+            if (_connection != null) 
+                return _connection;
+            
+            LoggingService.Log.Debug("Get coon ection");
+            var  connection = new SqlConnection($"Server=userprofile-db;User Id=sa;Password=SuperSecret7!;Encrypt=false;");
+            connection.Open();
+
+            _connection = connection;
+            return connection;
+        }
+        
+        
+        private static void Execute(IDbConnection connection, string sql)
+        {
+            try
+            {
+                using var trans = connection.BeginTransaction();
+                var cmd = connection.CreateCommand();
+                cmd.Transaction = trans;
+                cmd.CommandText = sql;
+                cmd.ExecuteNonQuery();
+                trans.Commit();
+                LoggingService.Log.Information($"SQL executed successfully: {sql}");
+            }
+            catch (SqlException ex)
+            {
+                LoggingService.Log.Information($"SQL Execution failed: {sql}", ex);
+                throw;
+            }
+           
+        }
+        public async Task RecreateDatabase()
+        {
+            using var trace = LoggingService.activitySource.StartActivity();
+            var connection = GetDbConnection();
+                try
+                {
+                    LoggingService.Log.Information("Recreating tables in database.");
+                    Execute(connection, "DROP TABLE IF EXISTS UserProfiles");
+
+                    Execute(connection, "CREATE TABLE UserProfiles(id INTEGER PRIMARY KEY, userName VARCHAR(500), email VARCHAR(500), bio VARCHAR(500) )");
+                    LoggingService.Log.Debug("Tables recreated successfully.");
+                }
+                catch (Exception ex)
+                {
+                    LoggingService.Log.Error("Error while recreating database", ex);
+                    throw;
+                }
+        }
+        
+        
+        
         public async Task AddUserProfileAsync(UserProfile userProfile)
         {
-            using var activity = LoggingService.activitySource.StartActivity();
 
-            await context.UserProfiles.AddAsync(userProfile);
-            await context.SaveChangesAsync();
+            using var activity = LoggingService.activitySource.StartActivity();
+            
+            var connection = GetDbConnection();
+            
+            var insertCmd = connection.CreateCommand();
+            insertCmd.CommandText = "INSERT INTO UserProfiles(id, userName, email, bio) VALUES(@id,@userName,@email,@bio)";
+
+            var pBio = new SqlParameter("bio", userProfile.Bio);
+            var pId = new SqlParameter("id", userProfile.Id);
+            var pUserName= new SqlParameter("userName", userProfile.Username);
+            var pEmail = new SqlParameter("email", userProfile.Id);
+
+            insertCmd.Parameters.Add(pBio);
+            insertCmd.Parameters.Add(pEmail);
+            insertCmd.Parameters.Add(pUserName);
+            insertCmd.Parameters.Add(pId);
+
+           await insertCmd.ExecuteNonQueryAsync();
+           
         }
 
         public async Task<UserProfile?> GetUserProfileByIdAsync(int id)
         {
-            return await context.UserProfiles.FindAsync(id);
+            using var activity = LoggingService.activitySource.StartActivity();
+            var connection = GetDbConnection();
+            
+            var selectCmd = connection.CreateCommand();
+            selectCmd.CommandText = "SELECT * FROM UserProfiles WHERE id = @id";
+            
+            var pId = new SqlParameter("id", id);
+            selectCmd.Parameters.Add(pId);
+            
+            UserProfile? user = null;
+
+            await using var reader =  await selectCmd.ExecuteReaderAsync();
+
+            await reader.ReadAsync();
+                user = new UserProfile()
+                {
+                    Id = reader.GetInt32(0),
+                    Username = reader.GetString(1),
+                    Email = reader.GetString(2),
+                    Bio = reader.GetString(3)
+                };
+
+            return user;
         }
 
         public async Task<UserProfile?> GetUserProfileByUsernameAsync(string username)

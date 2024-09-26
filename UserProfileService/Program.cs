@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Monitoring;
 using RabbitMQ.Client;
 using UserProfileService.Data;
 using UserProfileService.Repositories;
@@ -50,4 +51,5 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();

@@ -5,20 +5,53 @@ services:
     environment:
       MSSQL_SA_PASSWORD: "SuperSecret7!"
       ACCEPT_EULA: "Y"
-      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: false
     volumes:
       - mssql-data-userprofiles:/var/opt/mssql
   
+  tweets-db:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    environment:
+      MSSQL_SA_PASSWORD: "SuperSecret7!"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - mssql-data-tweets:/var/opt/mssql
   
-  
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"   # RabbitMQ message broker port
+      - "15672:15672" # RabbitMQ management UI
+      
   userprofileservice:
     image: userprofileservice
     build:
       context: .
       dockerfile: UserProfileService/Dockerfile
     depends_on:
+      - rabbitmq
       - userprofile-db
 
+  tweetpostingservice:
+    image: tweetpostingservice
+    build:
+      context: .
+      dockerfile: TweetPostingService/Dockerfile
+    ports:
+      - "5002:80"
+    depends_on:
+      - userprofileservice
+
+  interactionservice:
+    image: interactionservice
+    build:
+      context: .
+      dockerfile: InteractionService/Dockerfile
+    ports:
+      - "5003:80"
+    depends_on:
+      - tweetpostingservice
+      - userprofileservice
+  
   apigateway:
     image: apigateway
     build:
@@ -52,3 +85,4 @@ services:
 volumes: 
   seq-data:
   mssql-data-userprofiles:
+  msql-data-tweets:

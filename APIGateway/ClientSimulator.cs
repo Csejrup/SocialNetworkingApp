@@ -10,13 +10,27 @@ public class ClientSimulator
     private static HttpClient _httpClient = new HttpClient();
     public static async Task Run()
     {
+        
         Thread.Sleep(22000);
         await CreateUserProfileDb();
 
         await RegisterUser(new UserProfileDto()
-            {Id = 1, Bio = "I am a freelance tester", Email = "test@user.com", Username = "tester123"});
+        {
+            Id = 1,
+            Bio = "I am a freelance tester",
+            Email = "test@user.com",
+            Username = "tester123"
+        });
 
         var user = await GetUserById(1);
+        
+        // Create Tweet db
+        
+        // Add tweet 
+        
+        // Get tweet
+        
+        // more...
         
 
     }

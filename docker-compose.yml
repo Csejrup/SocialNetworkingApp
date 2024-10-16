@@ -10,8 +10,6 @@ services:
     build:
       context: .
       dockerfile: UserProfileService/Dockerfile
-    ports:
-      - "5001:80"
     depends_on:
       - rabbitmq
     deploy:
@@ -28,8 +26,6 @@ services:
     build:
       context: .
       dockerfile: TweetPostingService/Dockerfile
-    ports:
-      - "5002:80"
     depends_on:
       - userprofileservice
     deploy:
@@ -46,11 +42,6 @@ services:
     build:
       context: .
       dockerfile: InteractionService/Dockerfile
-    ports:
-      - "5003:80"
-    depends_on:
-      - tweetpostingservice
-      - userprofileservice
     deploy:
       replicas: 2  # Two replicas for x-axis scaling
       resources:
@@ -66,13 +57,9 @@ services:
       context: .
       dockerfile: APIGateway/Dockerfile
     ports:
-      - "5000:80"
-    depends_on:
-      - userprofileservice
-      - tweetpostingservice
-      - interactionservice
+      - "5001:80"
     deploy:
-      replicas: 2  # Two replicas for x-axis scaling
+      # replicas: 2  # Two replicas for x-axis scaling
       resources:
         limits:
           cpus: "0.50"

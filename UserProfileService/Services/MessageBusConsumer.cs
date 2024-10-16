@@ -17,7 +17,7 @@ namespace UserProfileService.Services
         {
             _connection = connection;
             _channel = channel;
-            var factory = new ConnectionFactory() { HostName = "rabbitmq" };
+            var factory = new ConnectionFactory { HostName = "rabbitmq" };
 
             for (var i = 0; i < RetryCount; i++)
             {

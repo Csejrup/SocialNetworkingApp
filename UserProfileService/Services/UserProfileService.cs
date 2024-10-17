@@ -43,7 +43,7 @@ namespace UserProfileService.Services
             };
             messageClient.Send(tweetRequest, "RequestTweetsForUser");
 
-            var tweets = await ListenForTweetsResponseWithRetries(userId, maxRetries: 3, timeoutInMilliseconds: 3000);
+            var tweets = await ListenForTweetsResponse(userId, maxRetries: 3, timeoutInMilliseconds: 3000);
 
             if (tweets == null)
             {
@@ -65,7 +65,7 @@ namespace UserProfileService.Services
             };
         }
 
-        private async Task<List<TweetDto>?> ListenForTweetsResponseWithRetries(Guid userId, int maxRetries, int timeoutInMilliseconds)
+        private async Task<List<TweetDto>?> ListenForTweetsResponse(Guid userId, int maxRetries, int timeoutInMilliseconds)
         {
             var retryCount = 0;
             List<TweetDto>? tweets = null;

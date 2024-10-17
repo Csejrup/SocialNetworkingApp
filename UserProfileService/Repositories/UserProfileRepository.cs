@@ -12,7 +12,7 @@ namespace UserProfileService.Repositories
             await context.SaveChangesAsync();
         }
 
-        public async Task<UserProfile?> GetUserProfileByIdAsync(int id)
+        public async Task<UserProfile?> GetUserProfileByIdAsync(Guid id)
         {
             return await context.UserProfiles.FindAsync(id);
         }
@@ -33,7 +33,7 @@ namespace UserProfileService.Repositories
             return await context.UserProfiles.ToListAsync();
         }
 
-        public async Task FollowUserAsync(int userId, int userIdToFollow)
+        public async Task FollowUserAsync(Guid userId, Guid userIdToFollow)
         {
             var user = await context.UserProfiles.FindAsync(userId);
             var userToFollow = await context.UserProfiles.FindAsync(userIdToFollow);
@@ -50,7 +50,7 @@ namespace UserProfileService.Repositories
             await context.SaveChangesAsync();
         }
 
-        public async Task UnfollowUserAsync(int userId, int userIdToUnfollow)
+        public async Task UnfollowUserAsync(Guid userId, Guid userIdToUnfollow)
         {
             var user = await context.UserProfiles.FindAsync(userId);
             var userToUnfollow = await context.UserProfiles.FindAsync(userIdToUnfollow);
@@ -68,7 +68,7 @@ namespace UserProfileService.Repositories
         }
 
         // New method to get the list of followers
-        public async Task<List<int>> GetFollowersAsync(int userId)
+        public async Task<List<Guid>> GetFollowersAsync(Guid userId)
         {
             var user = await context.UserProfiles.FindAsync(userId);
             if (user == null) throw new Exception("User not found.");

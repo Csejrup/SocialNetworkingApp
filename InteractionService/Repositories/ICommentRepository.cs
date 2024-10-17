@@ -7,6 +7,6 @@ namespace InteractionService.Repositories
     public interface ICommentRepository
     {
         Task AddCommentAsync(Comment comment);
-        Task<List<Comment>> GetCommentsByTweetIdAsync(int tweetId);
+        Task<List<Comment>> GetCommentsByTweetIdAsync(Guid tweetId);
     }
 }

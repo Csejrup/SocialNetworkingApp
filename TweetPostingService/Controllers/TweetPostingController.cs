@@ -22,9 +22,9 @@ namespace TweetPostingService.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetTweetsByUser(int userId)
+        public async Task<IActionResult> GetTweetsByUser(Guid userId)
         {
-            if (userId <= 0)
+            if (userId == null)
             {
                 return BadRequest("Invalid user ID.");
             }
@@ -39,7 +39,7 @@ namespace TweetPostingService.Controllers
             return Ok(tweets);
         }
         [HttpDelete("{tweetId}")]
-        public async Task<IActionResult> DeleteTweet(int tweetId, int userId)
+        public async Task<IActionResult> DeleteTweet(Guid tweetId, Guid userId)
         {
             await tweetService.DeleteTweetAsync(tweetId, userId);
             return Ok("Tweet deleted successfully.");

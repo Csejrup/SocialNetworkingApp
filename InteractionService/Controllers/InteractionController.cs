@@ -11,7 +11,7 @@ namespace InteractionService.Controllers
         [HttpPost("like")]
         public async Task<IActionResult> LikeTweet([FromBody] LikeDto likeDto)
         {
-            if (likeDto == null || likeDto.TweetId <= 0 || likeDto.UserId <= 0)
+            if (likeDto == null)
             {
                 return BadRequest("Invalid like data.");
             }
@@ -35,9 +35,9 @@ namespace InteractionService.Controllers
         }
 
         [HttpGet("comments/{tweetId}")]
-        public async Task<IActionResult> GetCommentsForTweet(int tweetId)
+        public async Task<IActionResult> GetCommentsForTweet(Guid tweetId)
         {
-            if (tweetId <= 0)
+            if (tweetId == null)
             {
                 return BadRequest("Invalid tweet ID.");
             }

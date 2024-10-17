@@ -42,7 +42,7 @@ namespace TweetPostingService.Services
             messageBusPublisher.PublishTweetEvent(tweetEvent);
         }
 
-        public async Task<List<TweetDto>> GetTweetsByUserAsync(int userId)
+        public async Task<List<TweetDto>> GetTweetsByUserAsync(Guid userId)
         {
             // Get all tweets from a specific user
             var tweets = await tweetRepository.GetTweetsByUserIdAsync(userId);
@@ -54,7 +54,7 @@ namespace TweetPostingService.Services
             }).ToList();
         }
 
-        public async Task DeleteTweetAsync(int tweetId, int userId)
+        public async Task DeleteTweetAsync(Guid tweetId, Guid userId)
         {
             var tweet = await tweetRepository.GetTweetByIdAsync(tweetId);
             if (tweet == null || tweet.UserId != userId)

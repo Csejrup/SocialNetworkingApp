@@ -4,23 +4,16 @@ using InteractionService.Repositories;
 
 namespace InteractionService.Services
 {
-    public class InteractionService : IInteractionService
+    public class InteractionService(
+        ILikeRepository likeRepository,
+        ICommentRepository commentRepository,
+        HttpClient httpClient)
+        : IInteractionService
     {
-        private readonly ILikeRepository _likeRepository;
-        private readonly ICommentRepository _commentRepository;
-        private readonly HttpClient _httpClient;
-
-        public InteractionService(ILikeRepository likeRepository, ICommentRepository commentRepository, HttpClient httpClient)
-        {
-            _likeRepository = likeRepository;
-            _commentRepository = commentRepository;
-            _httpClient = httpClient;
-        }
-
         public async Task LikeTweetAsync(LikeDto likeDto)
         {
             // Call the TweetPostingService to check if the tweet exists
-            var tweetExists = await _httpClient.GetFromJsonAsync<bool>($"http://tweetpostingservice/api/tweet/{likeDto.TweetId}");
+            var tweetExists = await httpClient.GetFromJsonAsync<bool>($"http://tweetpostingservice/api/tweet/{likeDto.TweetId}");
 
             if (!tweetExists)
             {
@@ -34,13 +27,13 @@ namespace InteractionService.Services
                 LikedAt = DateTime.UtcNow
             };
 
-            await _likeRepository.AddLikeAsync(like);
+            await likeRepository.AddLikeAsync(like);
         }
 
         public async Task CommentOnTweetAsync(CommentDto commentDto)
         {
             // Call the TweetPostingService to check if the tweet exists
-            var tweetExists = await _httpClient.GetFromJsonAsync<bool>($"http://tweetpostingservice/api/tweet/{commentDto.TweetId}");
+            var tweetExists = await httpClient.GetFromJsonAsync<bool>($"http://tweetpostingservice/api/tweet/{commentDto.TweetId}");
 
             if (!tweetExists)
             {
@@ -55,12 +48,12 @@ namespace InteractionService.Services
                 CommentedAt = DateTime.UtcNow
             };
 
-            await _commentRepository.AddCommentAsync(comment);
+            await commentRepository.AddCommentAsync(comment);
         }
 
-        public async Task<List<CommentDto>> GetCommentsForTweetAsync(int tweetId)
+        public async Task<List<CommentDto>> GetCommentsForTweetAsync(Guid tweetId)
         {
-            var comments = await _commentRepository.GetCommentsByTweetIdAsync(tweetId);
+            var comments = await commentRepository.GetCommentsByTweetIdAsync(tweetId);
 
             return comments.Select(c => new CommentDto
             {

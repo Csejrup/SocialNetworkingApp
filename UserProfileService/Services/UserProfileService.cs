@@ -18,7 +18,7 @@ namespace UserProfileService.Services
             await userProfileRepository.AddUserProfileAsync(userProfile);
         }
 
-        public async Task<UserProfileDto?> GetUserProfileAsync(int id)
+        public async Task<UserProfileDto?> GetUserProfileAsync(Guid id)
         {
             var userProfile = await userProfileRepository.GetUserProfileByIdAsync(id);
             if (userProfile == null) return null;
@@ -31,18 +31,18 @@ namespace UserProfileService.Services
             };
         }
 
-        public async Task FollowUserAsync(int userId, int userIdToFollow)
+        public async Task FollowUserAsync(Guid userId, Guid userIdToFollow)
         {
             await userProfileRepository.FollowUserAsync(userId, userIdToFollow);
         }
 
-        public async Task UnfollowUserAsync(int userId, int userIdToUnfollow)
+        public async Task UnfollowUserAsync(Guid userId, Guid userIdToUnfollow)
         {
             await userProfileRepository.UnfollowUserAsync(userId, userIdToUnfollow);
         }
 
         // New method to get followers
-        public async Task<List<int>> GetFollowersAsync(int userId)
+        public async Task<List<Guid>> GetFollowersAsync(Guid userId)
         {
             return await userProfileRepository.GetFollowersAsync(userId);
         }

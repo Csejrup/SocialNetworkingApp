@@ -14,7 +14,7 @@ namespace TweetPostingService.Repositories
             await context.SaveChangesAsync();
         }
 
-        public async Task<Tweet?> GetTweetByIdAsync(int tweetId)
+        public async Task<Tweet?> GetTweetByIdAsync(Guid tweetId)
         {
             return await context.Tweets.FindAsync(tweetId);
         }
@@ -25,7 +25,7 @@ namespace TweetPostingService.Repositories
             await context.SaveChangesAsync();
         }
 
-        public async Task<List<Tweet>> GetTweetsByUserIdAsync(int userId)
+        public async Task<List<Tweet>> GetTweetsByUserIdAsync(Guid userId)
         {
             return await context.Tweets.Where(t => t.UserId == userId).ToListAsync();
         }

@@ -109,7 +109,6 @@ namespace UserProfileService.Services
                 tcs.SetResult(tweets); 
             }, "UserTweetsFetched");
 
-            // If the task is canceled (timeout), cancel the completion source task
             cancellationToken.Register(() => tcs.TrySetCanceled());
 
             return tcs.Task;

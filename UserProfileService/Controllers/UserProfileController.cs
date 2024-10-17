@@ -26,7 +26,18 @@ namespace UserProfileService.Controllers
             }
             return Ok(user);
         }
+        [HttpGet("{userId}/tweets")]
+        public async Task<IActionResult> GetUserProfileWithTweets(Guid userId)
+        {
+            var userProfileWithTweets = await userProfileService.GetUserProfileWithTweetsAsync(userId);
 
+            if (userProfileWithTweets == null)
+            {
+                return NotFound("User not found or no tweets available.");
+            }
+
+            return Ok(userProfileWithTweets);
+        }
         [HttpPost("{userId:guid}/follow/{userIdToFollow:guid}")]
         public async Task<IActionResult> FollowUser(Guid userId, Guid userIdToFollow)
         {
@@ -34,7 +45,7 @@ namespace UserProfileService.Controllers
             return Ok("Followed successfully.");
         }
 
-        [HttpPost("{userId:guid}/unfollow/{userIdToUnfollow}")]
+        [HttpPost("{userId:guid}/unfollow/{userIdToUnfollow:guid}")]
         public async Task<IActionResult> UnfollowUser(Guid userId, Guid userIdToUnfollow)
         {
             await userProfileService.UnfollowUserAsync(userId, userIdToUnfollow);

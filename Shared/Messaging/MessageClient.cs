@@ -16,12 +16,9 @@ namespace Shared.Messaging
             _bus.PubSub.Publish(message, topic);
         }
 
-        public void Listen<T>(string topic, IMessageHandler<T> handler)
+        public void Listen<T>(Action<T> handler, string topic)
         {
-            _bus.PubSub.Subscribe<T>(topic, message =>
-            {
-                handler.Handle(message);
-            });
+            _bus.PubSub.Subscribe(topic, handler);
         }
     }
 }

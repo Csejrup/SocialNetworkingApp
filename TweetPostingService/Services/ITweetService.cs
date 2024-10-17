@@ -1,4 +1,4 @@
-using TweetPostingService.Dtos;
+using Shared.Dtos;
 
 namespace TweetPostingService.Services
 {

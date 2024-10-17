@@ -1,5 +1,4 @@
 using InteractionService.Models;
-using System.Threading.Tasks;
 
 namespace InteractionService.Repositories
 {

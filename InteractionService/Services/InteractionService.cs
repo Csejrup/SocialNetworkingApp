@@ -4,8 +4,6 @@ using InteractionService.Repositories;
 using Shared.Events;
 using Shared.Messaging;
 
-// Assuming the TweetPostingService has models like TweetEvent
-
 namespace InteractionService.Services
 {
     public class InteractionService(

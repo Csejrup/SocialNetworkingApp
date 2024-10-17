@@ -57,7 +57,7 @@ services:
       context: .
       dockerfile: APIGateway/Dockerfile
     ports:
-      - "5001:80"
+      - "5001:8080"
     deploy:
       # replicas: 2  # Two replicas for x-axis scaling
       resources:

@@ -1,0 +1,143 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/tweetposting/post",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "tweetpostingservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/tweet/post",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/tweetposting/user/{userId}",
+      "DownstreamHostAndPorts": [
+        { "Host": "tweetpostingservice", "Port": 8080 }
+      ],
+      "UpstreamPathTemplate": "/tweet/user/{userId}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/tweetposting/{tweetId}",
+      "DownstreamHostAndPorts": [
+        { "Host": "tweetpostingservice", "Port": 8080 }
+      ],
+      "UpstreamPathTemplate": "/tweet/{tweetId}",
+      "UpstreamHttpMethod": [ "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/interaction/like",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "interactionservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/interaction/like",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/interaction/comment",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "interactionservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/interaction/comment",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/interaction/comments/{tweetId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "interactionservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/interaction/comments/{tweetId}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/userprofile/register",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "userprofileservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/userprofile/register",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/userprofile/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "userprofileservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/userprofile/{id}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/userprofile/{userId}/tweets",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "userprofileservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/userprofile/{userId}/tweets",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/userprofile/{userId}/follow/{userIdToFollow}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "userprofileservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/userprofile/{userId}/follow/{userIdToFollow}",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/userprofile/{userId}/unfollow/{userIdToUnfollow}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "userprofileservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/userprofile/{userId}/unfollow/{userIdToUnfollow}",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/userprofile/{userId}/followers",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "userprofileservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/userprofile/{userId}/followers",
+      "UpstreamHttpMethod": [ "GET" ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:8080"
+  }
+}

@@ -3,6 +3,7 @@ using TweetPostingService.Data;
 using TweetPostingService.Repositories;
 using TweetPostingService.Services;
 using EasyNetQ;
+using EasyNetQ.Serialization;
 using Shared.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<TweetDbContext>(options =>
 // Register the repository and services
 builder.Services.AddScoped<ITweetRepository, TweetRepository>();
 builder.Services.AddScoped<ITweetService, TweetService>();
+builder.Services.AddScoped<IUserCacheRepository, UserCacheRepository>();
 
 // Register EasyNetQ with RabbitMQ
 builder.Services.AddEasyNetQ("host=rabbitmq");

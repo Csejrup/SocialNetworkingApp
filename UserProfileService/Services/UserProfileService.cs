@@ -52,7 +52,6 @@ namespace UserProfileService.Services
             await userProfileRepository.UnfollowUserAsync(userId, userIdToUnfollow);
         }
 
-        // New method to get followers
         public async Task<List<Guid>> GetFollowersAsync(Guid userId)
         {
             return await userProfileRepository.GetFollowersAsync(userId);

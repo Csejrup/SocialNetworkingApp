@@ -16,7 +16,7 @@ namespace UserProfileService.Controllers
             return Ok("User registered successfully");
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetUserProfile(Guid id)
         {
             var user = await userProfileService.GetUserProfileAsync(id);
@@ -27,22 +27,21 @@ namespace UserProfileService.Controllers
             return Ok(user);
         }
 
-        [HttpPost("{userId}/follow/{userIdToFollow}")]
+        [HttpPost("{userId:guid}/follow/{userIdToFollow:guid}")]
         public async Task<IActionResult> FollowUser(Guid userId, Guid userIdToFollow)
         {
             await userProfileService.FollowUserAsync(userId, userIdToFollow);
             return Ok("Followed successfully.");
         }
 
-        [HttpPost("{userId}/unfollow/{userIdToUnfollow}")]
+        [HttpPost("{userId:guid}/unfollow/{userIdToUnfollow}")]
         public async Task<IActionResult> UnfollowUser(Guid userId, Guid userIdToUnfollow)
         {
             await userProfileService.UnfollowUserAsync(userId, userIdToUnfollow);
             return Ok("Unfollowed successfully.");
         }
 
-        // New endpoint to get followers
-        [HttpGet("{userId}/followers")]
+        [HttpGet("{userId:guid}/followers")]
         public async Task<IActionResult> GetFollowers(Guid userId)
         {
             var followers = await userProfileService.GetFollowersAsync(userId);

@@ -15,7 +15,7 @@ builder.Services.AddDbContext<UserProfileDbContext>(options =>
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService.Services.UserProfileService>();
 
-// Register EasyNetQ RabbitMQ connection (instead of manually setting up IConnection and IModel)
+// Register RabbitMQ connection 
 builder.Services.AddEasyNetQ("host=rabbitmq");
 
 // Register MessageClient for handling RabbitMQ messaging
@@ -29,7 +29,6 @@ builder.Services.AddSwaggerGen();
 // Build the application
 var app = builder.Build();
 
-// Ensure the database is created for in-memory setup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<UserProfileDbContext>();

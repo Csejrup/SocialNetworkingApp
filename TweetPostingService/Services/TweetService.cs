@@ -1,3 +1,4 @@
+using Shared.Events;
 using Shared.Messaging;
 using TweetPostingService.Dtos;
 using TweetPostingService.Models;

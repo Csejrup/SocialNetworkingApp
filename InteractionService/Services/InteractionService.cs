@@ -8,24 +8,15 @@ using Shared.Messaging;
 
 namespace InteractionService.Services
 {
-    public class InteractionService : IInteractionService
+    public class InteractionService(
+        ILikeRepository likeRepository,
+        ICommentRepository commentRepository,
+        MessageClient messageClient)
+        : IInteractionService
     {
-        private readonly ILikeRepository _likeRepository;
-        private readonly ICommentRepository _commentRepository;
-        private readonly MessageClient _messageClient;
-
-        public InteractionService(ILikeRepository likeRepository, ICommentRepository commentRepository, MessageClient messageClient)
-        {
-            _likeRepository = likeRepository;
-            _commentRepository = commentRepository;
-            _messageClient = messageClient;
-        }
-
         public async Task LikeTweetAsync(LikeDto likeDto)
         {
-            // Simulate fetching tweet information using RabbitMQ (skipping HTTP calls)
-            // For the sake of this example, we assume the tweet exists
-
+            
             var like = new Like
             {
                 UserId = likeDto.UserId,
@@ -33,7 +24,7 @@ namespace InteractionService.Services
                 LikedAt = DateTime.UtcNow
             };
 
-            await _likeRepository.AddLikeAsync(like);
+            await likeRepository.AddLikeAsync(like);
 
             // Publish a "TweetLiked" event to RabbitMQ
             var tweetEvent = new TweetEvent
@@ -43,14 +34,11 @@ namespace InteractionService.Services
                 EventType = "TweetLiked"
             };
 
-            _messageClient.Send(tweetEvent, "TweetLiked");
+            messageClient.Send(tweetEvent, "TweetLiked");
         }
 
         public async Task CommentOnTweetAsync(CommentDto commentDto)
         {
-            // Simulate fetching tweet information using RabbitMQ (skipping HTTP calls)
-            // For the sake of this example, we assume the tweet exists
-
             var comment = new Comment
             {
                 UserId = commentDto.UserId,
@@ -59,7 +47,7 @@ namespace InteractionService.Services
                 CommentedAt = DateTime.UtcNow
             };
 
-            await _commentRepository.AddCommentAsync(comment);
+            await commentRepository.AddCommentAsync(comment);
 
             // Publish a "TweetCommented" event to RabbitMQ
             var tweetEvent = new TweetEvent
@@ -70,12 +58,12 @@ namespace InteractionService.Services
                 EventType = "TweetCommented"
             };
 
-            _messageClient.Send(tweetEvent, "TweetCommented");
+            messageClient.Send(tweetEvent, "TweetCommented");
         }
 
         public async Task<List<CommentDto>> GetCommentsForTweetAsync(Guid tweetId)
         {
-            var comments = await _commentRepository.GetCommentsByTweetIdAsync(tweetId);
+            var comments = await commentRepository.GetCommentsByTweetIdAsync(tweetId);
 
             return comments.Select(c => new CommentDto
             {

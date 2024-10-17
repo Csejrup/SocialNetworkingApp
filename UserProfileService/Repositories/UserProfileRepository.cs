@@ -67,7 +67,6 @@ namespace UserProfileService.Repositories
             await context.SaveChangesAsync();
         }
 
-        // New method to get the list of followers
         public async Task<List<Guid>> GetFollowersAsync(Guid userId)
         {
             var user = await context.UserProfiles.FindAsync(userId);

@@ -1,35 +1,46 @@
+using Shared.Messaging;
 using UserProfileService.Dtos;
 using UserProfileService.Models;
 using UserProfileService.Repositories;
 
 namespace UserProfileService.Services
 {
-    public class UserProfileService(IUserProfileRepository userProfileRepository) : IUserProfileService
+    public class UserProfileService(IUserProfileRepository userProfileRepository, MessageClient messageClient) : IUserProfileService
     {
-        public async Task RegisterUserAsync(UserProfileDto userProfileDto)
-        {
-            var userProfile = new UserProfile
+            public async Task RegisterUserAsync(UserProfileDto userProfileDto)
             {
-                Username = userProfileDto.Username,
-                Email = userProfileDto.Email,
-                Bio = userProfileDto.Bio
-            };
+                var userProfile = new UserProfile
+                {
+                    Username = userProfileDto.Username,
+                    Email = userProfileDto.Email,
+                    Bio = userProfileDto.Bio
+                };
 
-            await userProfileRepository.AddUserProfileAsync(userProfile);
-        }
+                await userProfileRepository.AddUserProfileAsync(userProfile);
 
-        public async Task<UserProfileDto?> GetUserProfileAsync(Guid id)
-        {
-            var userProfile = await userProfileRepository.GetUserProfileByIdAsync(id);
-            if (userProfile == null) return null;
+                // After registering the user, send a message to other services
+                var message = new UserProfileUpdatedMessage
+                {
+                    UserId = userProfile.Id,
+                    Name = userProfile.Username,
+                    Email = userProfile.Email
+                };
 
-            return new UserProfileDto
+                messageClient.Send(message, "UserProfileUpdatedMessage");
+            }
+
+            public async Task<UserProfileDto?> GetUserProfileAsync(Guid id)
             {
-                Username = userProfile.Username,
-                Email = userProfile.Email,
-                Bio = userProfile.Bio
-            };
-        }
+                var userProfile = await userProfileRepository.GetUserProfileByIdAsync(id);
+                if (userProfile == null) return null;
+
+                return new UserProfileDto
+                {
+                    Username = userProfile.Username,
+                    Email = userProfile.Email,
+                    Bio = userProfile.Bio
+                };
+            }
 
         public async Task FollowUserAsync(Guid userId, Guid userIdToFollow)
         {

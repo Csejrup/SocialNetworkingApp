@@ -1,26 +1,17 @@
+using Shared.Messaging;
 using TweetPostingService.Dtos;
 using TweetPostingService.Models;
 using TweetPostingService.Repositories;
-using UserProfileService.Dtos;
+
 
 namespace TweetPostingService.Services
 {
-    public class TweetService(
-        ITweetRepository tweetRepository,
-        HttpClient httpClient,
-        IMessageBusPublisher messageBusPublisher)
+    public class TweetService(ITweetRepository tweetRepository, MessageClient messageClient)
         : ITweetService
     {
         public async Task PostTweetAsync(TweetDto tweetDto)
         {
-            // Fetch user info from UserProfileService
-            var user = await httpClient.GetFromJsonAsync<UserProfileDto>($"http://userprofileservice/api/userprofile/{tweetDto.UserId}");
-
-            if (user == null)
-            {
-                throw new Exception($"User with ID {tweetDto.UserId} does not exist.");
-            }
-
+            
             var tweet = new Tweet
             {
                 UserId = tweetDto.UserId,
@@ -39,7 +30,7 @@ namespace TweetPostingService.Services
                 EventType = "TweetPosted"
             };
 
-            messageBusPublisher.PublishTweetEvent(tweetEvent);
+            messageClient.Send(tweetEvent, "TweetPosted");
         }
 
         public async Task<List<TweetDto>> GetTweetsByUserAsync(Guid userId)
@@ -73,7 +64,7 @@ namespace TweetPostingService.Services
                 EventType = "TweetDeleted"
             };
 
-            messageBusPublisher.PublishTweetEvent(tweetEvent);
+            messageClient.Send(tweetEvent, "TweetDeleted");
         }
     }
 }

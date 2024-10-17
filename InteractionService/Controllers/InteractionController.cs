@@ -34,10 +34,10 @@ namespace InteractionService.Controllers
             return Ok("Comment added successfully.");
         }
 
-        [HttpGet("comments/{tweetId}")]
+        [HttpGet("comments/{tweetId:guid}")]
         public async Task<IActionResult> GetCommentsForTweet(Guid tweetId)
         {
-            if (tweetId == null)
+            if (tweetId == Guid.Empty)
             {
                 return BadRequest("Invalid tweet ID.");
             }

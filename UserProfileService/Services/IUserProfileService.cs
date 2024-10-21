@@ -4,7 +4,7 @@ namespace UserProfileService.Services
 {
     public interface IUserProfileService
     {
-        Task RegisterUserAsync(UserProfileDto userProfile);
+        Task<Guid> RegisterUserAsync(UserProfileDto userProfile);
         Task<UserProfileDto?> GetUserProfileAsync(Guid id);
         Task<UserProfileWithTweetsDto?> GetUserProfileWithTweetsAsync(Guid userId);
 

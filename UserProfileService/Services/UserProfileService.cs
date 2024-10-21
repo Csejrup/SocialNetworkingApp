@@ -9,10 +9,13 @@ namespace UserProfileService.Services
     public class UserProfileService(IUserProfileRepository userProfileRepository, MessageClient messageClient)
         : IUserProfileService
     {
-        public async Task RegisterUserAsync(UserProfileDto userProfileDto)
+        public async Task<Guid> RegisterUserAsync(UserProfileDto userProfileDto)
         {
+            
+            
             var userProfile = new UserProfile
             {
+                Id = Guid.NewGuid(),
                 Username = userProfileDto.Username,
                 Email = userProfileDto.Email,
                 Bio = userProfileDto.Bio
@@ -28,6 +31,7 @@ namespace UserProfileService.Services
             };
 
             messageClient.Send(message, "UserProfileUpdatedMessage");
+            return userProfile.Id;
         }
 
         public async Task<UserProfileWithTweetsDto?> GetUserProfileWithTweetsAsync(Guid userId)

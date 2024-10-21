@@ -12,8 +12,8 @@ namespace UserProfileService.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUser([FromBody] UserProfileDto userProfile)
         {
-            await userProfileService.RegisterUserAsync(userProfile);
-            return Ok("User registered successfully");
+            var userId = await userProfileService.RegisterUserAsync(userProfile);
+            return Ok("User registered successfully - UserId: " + userId);
         }
 
         [HttpGet("{id:guid}")]

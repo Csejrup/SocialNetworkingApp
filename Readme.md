@@ -10,9 +10,7 @@ Obs. You need to change the id's in the GET requests.
 
 - Register a user: 
 ~~~
-curl -X POST "http://localhost:5001/userprofile/register" 
--H "Content-Type: application/json" 
--d '{"Username": "user1", "Email": "user@test.dk", "Bio": "I am a test user"}'
+curl -X POST "http://localhost:5001/userprofile/register" -H "Content-Type: application/json" -d '{"Username": "user1", "Email": "user@test.dk", "Bio": "I am a test user"}'
 ~~~
 
 - Get User Profile by ID:
@@ -76,7 +74,7 @@ curl -X GET "http://localhost:5001/interaction/comments/b05fb8c6-4d25-4533-9c19-
 
 ### Tweet requests
 
-
+curl -X POST "http://localhost:5001/userprofile/register" -H "Content-Type: application/json" -d '{"Username": "user1", "Email": "user@test.dk", "Bio": "I am a test user"}'
 - Like a Tweet:
 ~~~
 curl -X POST http://localhost:5001/tweetposting/post \

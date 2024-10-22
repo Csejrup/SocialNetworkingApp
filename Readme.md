@@ -2,7 +2,8 @@
 
 
 ## API Endpoints Testing via cURL
-You can test the application using these curl or Postman requests:
+You can test the application using these curl or Postman requests.
+Obs. You need to change the id's in the GET requests.
 
 
 ### User requests

@@ -1,6 +1,10 @@
 
 # Social Networking App
 
+## Architecture and System Setup explanation video
+
+https://streamable.com/55eeg1
+
 ## Getting Started
 
 This application uses Docker for containerization. Follow these steps to get started:

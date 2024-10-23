@@ -1,10 +1,36 @@
+
 # Social Networking App
 
+## Getting Started
+
+This application uses Docker for containerization. Follow these steps to get started:
+
+### Prerequisites
+
+- Ensure you have Docker installed on your machine. You can download and install Docker from [here](https://www.docker.com/get-started).
+- Make sure Docker is running.
+
+### Running the Application
+
+1. Clone the repository to your local machine.
+   ```bash
+   git clone https://github.com/Csejrup/SocialNetworkingApp.git
+   cd social-networking-app
+   ```
+
+2. Build and run the Docker containers:
+   ```bash
+   docker-compose up --build
+   ```
+
+3. To stop the containers:
+   ```bash
+   docker-compose down
+   ```
 
 ## API Endpoints Testing via cURL
 You can test the application using these curl or Postman requests.
 Obs. You need to change the id's in the GET requests.
-
 
 ### User requests
 
@@ -48,9 +74,7 @@ curl -X GET "http://localhost:5001/userprofile/1d33d596-5bca-4b6d-8b5b-4a04db854
 
 - Like a Tweet:
 ~~~
-curl -X POST "http://localhost:5001/interaction/like" \
--H "Content-Type: application/json" \
--d '{
+curl -X POST "http://localhost:5001/interaction/like" -H "Content-Type: application/json" -d '{
       "tweetId": "11111111-1111-1111-1111-111111111111",
       "userId": "11111111-1111-1111-1111-111111111111""
     }'
@@ -58,9 +82,7 @@ curl -X POST "http://localhost:5001/interaction/like" \
 
 - Comment on a Tweet:
 ~~~
-curl -X POST "http://localhost:5001/interaction/comment" \
--H "Content-Type: application/json" \
--d '{
+curl -X POST "http://localhost:5001/interaction/comment" -H "Content-Type: application/json" -d '{
       "tweetId": "11111111-1111-1111-1111-111111111111",
       "userId": "11111111-1111-1111-1111-111111111111",
       "content": "This is a comment on the tweet."
@@ -74,12 +96,9 @@ curl -X GET "http://localhost:5001/interaction/comments/b05fb8c6-4d25-4533-9c19-
 
 ### Tweet requests
 
-curl -X POST "http://localhost:5001/userprofile/register" -H "Content-Type: application/json" -d '{"Username": "user1", "Email": "user@test.dk", "Bio": "I am a test user"}'
 - Like a Tweet:
 ~~~
-curl -X POST http://localhost:5001/tweetposting/post \
-     -H "Content-Type: application/json" \
-     -d '{
+curl -X POST http://localhost:5001/tweetposting/post      -H "Content-Type: application/json"      -d '{
            "content": "This is a sample tweet",
            "userId": "11111111-1111-1111-1111-111111111111"
          }'

@@ -9,7 +9,7 @@ namespace InteractionService.Services
     public class InteractionService(
         ILikeRepository likeRepository,
         ICommentRepository commentRepository,
-        MessageClient messageClient)
+        IMessageClient messageClient)
         : IInteractionService
     {
         public async Task LikeTweetAsync(LikeDto likeDto)

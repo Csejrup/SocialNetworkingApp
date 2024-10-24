@@ -19,7 +19,7 @@ builder.Services.AddScoped<IUserProfileService, UserProfileService.Services.User
 builder.Services.AddEasyNetQ("host=rabbitmq");
 
 // Register MessageClient for handling RabbitMQ messaging
-builder.Services.AddScoped<MessageClient>();
+builder.Services.AddScoped<IMessageClient, MessageClient>();
 
 // Register controllers, API docs, and Swagger
 builder.Services.AddControllers();

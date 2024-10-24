@@ -10,9 +10,9 @@ namespace TweetPostingService.Services
     public class TweetService : ITweetService
     {
         private readonly ITweetRepository _tweetRepository;
-        private readonly MessageClient _messageClient;
+        private readonly IMessageClient _messageClient;
         private readonly IUserCacheRepository _userCacheRepository;
-        public TweetService(ITweetRepository tweetRepository, MessageClient messageClient, IUserCacheRepository userCacheRepository)
+        public TweetService(ITweetRepository tweetRepository, IMessageClient messageClient, IUserCacheRepository userCacheRepository)
         {
             _tweetRepository = tweetRepository;
             _messageClient = messageClient;

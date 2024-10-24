@@ -21,7 +21,7 @@ builder.Services.AddScoped<IUserCacheRepository, UserCacheRepository>();
 builder.Services.AddEasyNetQ("host=rabbitmq");
 
 // Register MessageClient for RabbitMQ interaction
-builder.Services.AddScoped<MessageClient>();
+builder.Services.AddScoped<IMessageClient, MessageClient>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

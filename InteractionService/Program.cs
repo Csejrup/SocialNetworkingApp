@@ -18,7 +18,7 @@ builder.Services.AddScoped<IInteractionService, InteractionService.Services.Inte
 
 // Register EasyNetQ and MessageClient for RabbitMQ communication
 builder.Services.AddEasyNetQ("host=rabbitmq");
-builder.Services.AddScoped<MessageClient>();
+builder.Services.AddScoped<IMessageClient, MessageClient>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

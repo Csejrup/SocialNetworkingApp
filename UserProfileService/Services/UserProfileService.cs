@@ -6,12 +6,11 @@ using UserProfileService.Repositories;
 
 namespace UserProfileService.Services
 {
-    public class UserProfileService(IUserProfileRepository userProfileRepository, MessageClient messageClient)
+    public class UserProfileService(IUserProfileRepository userProfileRepository, IMessageClient messageClient)
         : IUserProfileService
     {
         public async Task<Guid> RegisterUserAsync(UserProfileDto userProfileDto)
         {
-            
             
             var userProfile = new UserProfile
             {

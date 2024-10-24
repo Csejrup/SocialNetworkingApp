@@ -2,7 +2,7 @@ using EasyNetQ;
 
 namespace Shared.Messaging
 {
-    public class MessageClient
+    public class MessageClient : IMessageClient
     {
         private readonly IBus _bus;
 

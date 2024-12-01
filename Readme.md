@@ -13,7 +13,7 @@ This application uses Docker for containerization. Follow these steps to get sta
 - Ensure you have Docker installed on your machine. You can download and install Docker from [here](https://www.docker.com/get-started).
 - Make sure Docker is running.
 
-### Running the Application
+### Running the Application with docker compose
 
 1. Clone the repository to your local machine.
 
@@ -31,6 +31,37 @@ This application uses Docker for containerization. Follow these steps to get sta
 3. To stop the containers:
    ```bash
    docker-compose down
+   ```
+
+### Running the Application with kubernetes
+
+1. Clone the repository to your local machine.
+
+   ```bash
+   git clone https://github.com/Csejrup/SocialNetworkingApp.git
+   cd social-networking-app
+   ```
+
+2. Build and add the images to a local docker registry:
+
+   ```bash
+   docker build . -f UserProfileService/Dockerfile -t socialnetworkingapp/userprofileservice
+   docker build . -f TweetPostingService/Dockerfile -t socialnetworkingapp/tweetpostingservice
+   docker build . -f InteractionService/Dockerfile -t socialnetworkingapp/interactionservice
+   docker build . -f APIGateway/Dockerfile -t socialnetworkingapp/apigateway
+   ```
+
+3. Add the services to kubernetes
+   ```bash
+   kubectl apply -f kubernetes/rabbitmq.yaml
+   kubectl apply -f kubernetes/userprofileservice.yaml
+   kubectl apply -f kubernetes/tweetpostingservice.yaml
+   kubectl apply -f kubernetes/interactionservice.yaml
+   kubectl apply -f kubernetes/apigateway.yaml
+   ```
+4. Start the kubernetes´
+   ```bash
+   kubectl proxy
    ```
 
 ## API Endpoints Testing via cURL

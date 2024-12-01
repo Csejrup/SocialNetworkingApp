@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: userprofileservice
+  labels:
+    app: userprofileservice
+spec:
+  selector:
+    app: userprofileservice
+  ports:
+    - protocol: TCP
+      port: 8080         # Service is exposed on port 80
+      targetPort: 8080 # Forwards traffic to container's port 8083
+  type: ClusterIP       # Internal access only; 
+  
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userprofileservice
+  labels:
+    app: userprofileservice
+spec:
+  replicas: 3  # Ensures high availability with 3 instances
+  selector:
+    matchLabels:
+      app: userprofileservice
+  template:
+    metadata:
+      labels:
+        app: userprofileservice
+    spec:
+      containers:
+        - name: userprofileservice
+          image: socailnetworkapp/userprofileservice 
+          imagePullPolicy: Never
+          env:  # Add environment variables if needed
+        

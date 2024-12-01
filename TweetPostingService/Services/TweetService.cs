@@ -1,26 +1,68 @@
-using TweetPostingService.Dtos;
+using Shared.Dtos;
+using Shared.Events;
+using Shared.Messaging;
 using TweetPostingService.Models;
 using TweetPostingService.Repositories;
-using UserProfileService.Dtos;
+using UserProfileService.Models;
 
 namespace TweetPostingService.Services
 {
-    public class TweetService(
-        ITweetRepository tweetRepository,
-        HttpClient httpClient,
-        IMessageBusPublisher messageBusPublisher)
-        : ITweetService
+    public class TweetService : ITweetService
     {
+        private readonly ITweetRepository _tweetRepository;
+        private readonly IMessageClient _messageClient;
+        private readonly IUserCacheRepository _userCacheRepository;
+        public TweetService(ITweetRepository tweetRepository, IMessageClient messageClient, IUserCacheRepository userCacheRepository)
+        {
+            _tweetRepository = tweetRepository;
+            _messageClient = messageClient;
+            _userCacheRepository = userCacheRepository;
+
+            // Listen for requests to fetch tweets for a user
+            _messageClient.Listen<TweetRequestMessage>(HandleTweetRequest, "RequestTweetsForUser");
+            _messageClient.Listen<UserProfileUpdatedMessage>(HandleUserProfileUpdated, "UserProfileUpdated");
+
+        }
+        private async void HandleUserProfileUpdated(UserProfileUpdatedMessage message)
+        {
+            await _userCacheRepository.UpdateUserProfileAsync(new UserProfileCache
+            {
+                UserId = message.UserId,
+                Name = message.Name,
+                Email = message.Email
+            });
+
+            Console.WriteLine($"User profile updated for User ID: {message.UserId}");
+        }
+        private async void HandleTweetRequest(TweetRequestMessage request)
+        {
+            var tweets = await _tweetRepository.GetTweetsByUserIdAsync(request.UserId);
+
+            var response = new TweetResponseMessage
+            {
+                UserId = request.UserId,
+                Tweets = tweets.Select(t => new TweetDto
+                {
+                    TweetId = t.Id,
+                    Content = t.Content,
+                    CreatedAt = t.CreatedAt
+                }).ToList()
+            };
+
+            // Send the response message back via RabbitMQ to the UserProfileService
+            _messageClient.Send(response, "UserTweetsFetched");
+        }
+
         public async Task PostTweetAsync(TweetDto tweetDto)
         {
-            // Fetch user info from UserProfileService
-            var user = await httpClient.GetFromJsonAsync<UserProfileDto>($"http://userprofileservice/api/userprofile/{tweetDto.UserId}");
-
-            if (user == null)
+            // Validate if the user exists in the local cache
+            var userProfile = await _userCacheRepository.GetUserProfileAsync(tweetDto.UserId);
+            if (userProfile == null)
             {
-                throw new Exception($"User with ID {tweetDto.UserId} does not exist.");
+                throw new Exception("Invalid user: The user does not exist.");
             }
 
+            // Create a new Tweet entity
             var tweet = new Tweet
             {
                 UserId = tweetDto.UserId,
@@ -28,9 +70,10 @@ namespace TweetPostingService.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            await tweetRepository.AddTweetAsync(tweet);
+            // Save the tweet to the repository
+            await _tweetRepository.AddTweetAsync(tweet);
 
-            // Publish the tweet event to RabbitMQ
+            // Publish the TweetPosted event
             var tweetEvent = new TweetEvent
             {
                 UserId = tweetDto.UserId,
@@ -39,32 +82,36 @@ namespace TweetPostingService.Services
                 EventType = "TweetPosted"
             };
 
-            messageBusPublisher.PublishTweetEvent(tweetEvent);
+            _messageClient.Send(tweetEvent, "TweetPosted");
         }
 
-        public async Task<List<TweetDto>> GetTweetsByUserAsync(int userId)
+
+        public async Task<List<TweetDto>> GetTweetsByUserAsync(Guid userId)
         {
-            // Get all tweets from a specific user
-            var tweets = await tweetRepository.GetTweetsByUserIdAsync(userId);
+            var tweets = await _tweetRepository.GetTweetsByUserIdAsync(userId);
 
             return tweets.Select(t => new TweetDto
             {
                 UserId = t.UserId,
-                Content = t.Content
+                TweetId = t.Id,
+                Content = t.Content,
+                CreatedAt = t.CreatedAt
             }).ToList();
         }
 
-        public async Task DeleteTweetAsync(int tweetId, int userId)
+        public async Task DeleteTweetAsync(Guid tweetId, Guid userId)
         {
-            var tweet = await tweetRepository.GetTweetByIdAsync(tweetId);
+            // Fetch the tweet by its ID
+            var tweet = await _tweetRepository.GetTweetByIdAsync(tweetId);
             if (tweet == null || tweet.UserId != userId)
             {
                 throw new Exception("You can only delete your own tweets.");
             }
 
-            await tweetRepository.DeleteTweetAsync(tweet);
+            // Delete the tweet from the repository
+            await _tweetRepository.DeleteTweetAsync(tweet);
 
-            // Publish the tweet deleted event to RabbitMQ
+            // Publish the TweetDeleted event
             var tweetEvent = new TweetEvent
             {
                 UserId = tweet.UserId,
@@ -73,7 +120,8 @@ namespace TweetPostingService.Services
                 EventType = "TweetDeleted"
             };
 
-            messageBusPublisher.PublishTweetEvent(tweetEvent);
+            _messageClient.Send(tweetEvent, "TweetDeleted");
         }
+
     }
 }

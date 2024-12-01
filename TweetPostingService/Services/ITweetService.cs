@@ -1,11 +1,11 @@
-using TweetPostingService.Dtos;
+using Shared.Dtos;
 
 namespace TweetPostingService.Services
 {
     public interface ITweetService
     {
         Task PostTweetAsync(TweetDto tweetDto);
-        Task<List<TweetDto>> GetTweetsByUserAsync(int userId);
-        Task DeleteTweetAsync(int tweetId, int userId);
+        Task<List<TweetDto>> GetTweetsByUserAsync(Guid userId);
+        Task DeleteTweetAsync(Guid tweetId, Guid userId);
     }
 }

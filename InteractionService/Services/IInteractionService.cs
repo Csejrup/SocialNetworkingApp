@@ -6,6 +6,6 @@ namespace InteractionService.Services
     {
         Task LikeTweetAsync(LikeDto likeDto);
         Task CommentOnTweetAsync(CommentDto commentDto);
-        Task<List<CommentDto>> GetCommentsForTweetAsync(int tweetId);
+        Task<List<CommentDto>> GetCommentsForTweetAsync(Guid tweetId);
     }
 }

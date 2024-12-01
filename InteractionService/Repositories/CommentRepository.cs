@@ -12,7 +12,7 @@ namespace InteractionService.Repositories
             await context.SaveChangesAsync();
         }
 
-        public async Task<List<Comment>> GetCommentsByTweetIdAsync(int tweetId)
+        public async Task<List<Comment>> GetCommentsByTweetIdAsync(Guid tweetId)
         {
             return await context.Comments.Where(c => c.TweetId == tweetId).ToListAsync();
         }

@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using TweetPostingService.Dtos;
 using TweetPostingService.Services;
+using Shared.Dtos;
 
 namespace TweetPostingService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class TweetController(ITweetService tweetService) : ControllerBase
+    public class TweetPostingController(ITweetService tweetService) : ControllerBase
     {
         [HttpPost("post")]
         public async Task<IActionResult> PostTweet([FromBody] TweetDto tweetDto)
@@ -16,15 +16,20 @@ namespace TweetPostingService.Controllers
                 return BadRequest("Tweet content cannot be empty.");
             }
 
-            await tweetService.PostTweetAsync(tweetDto);
+            // Error handling for missing UserId
+            if (tweetDto.UserId == Guid.Empty)
+            {
+                return BadRequest("User ID cannot be empty.");
+            }
 
+            await tweetService.PostTweetAsync(tweetDto);
             return Ok("Tweet posted successfully.");
         }
 
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetTweetsByUser(int userId)
+        [HttpGet("user/{userId:guid}")]
+        public async Task<IActionResult> GetTweetsByUser(Guid userId)
         {
-            if (userId <= 0)
+            if (userId == Guid.Empty)
             {
                 return BadRequest("Invalid user ID.");
             }
@@ -38,11 +43,24 @@ namespace TweetPostingService.Controllers
 
             return Ok(tweets);
         }
-        [HttpDelete("{tweetId}")]
-        public async Task<IActionResult> DeleteTweet(int tweetId, int userId)
+
+        [HttpDelete("{tweetId:guid}")]
+        public async Task<IActionResult> DeleteTweet(Guid tweetId, [FromQuery] Guid userId)
         {
-            await tweetService.DeleteTweetAsync(tweetId, userId);
-            return Ok("Tweet deleted successfully.");
+            if (tweetId == Guid.Empty || userId == Guid.Empty)
+            {
+                return BadRequest("Invalid tweet ID or user ID.");
+            }
+
+            try
+            {
+                await tweetService.DeleteTweetAsync(tweetId, userId);
+                return Ok("Tweet deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message); 
+            }
         }
     }
 }

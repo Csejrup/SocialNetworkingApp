@@ -7,8 +7,8 @@ namespace TweetPostingService.Repositories
     public interface ITweetRepository
     {
         Task AddTweetAsync(Tweet tweet);
-        Task<Tweet?> GetTweetByIdAsync(int tweetId);
+        Task<Tweet?> GetTweetByIdAsync(Guid tweetId);
         Task DeleteTweetAsync(Tweet tweet);
-        Task<List<Tweet>> GetTweetsByUserIdAsync(int userId);
+        Task<List<Tweet>> GetTweetsByUserIdAsync(Guid userId);
     }
 }

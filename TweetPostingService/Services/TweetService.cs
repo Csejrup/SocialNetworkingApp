@@ -64,7 +64,7 @@ public class TweetService : ITweetService
             }).ToList()
         };
 
-        // Send the response message back via RabbitMQ to the UserProfileService
+        // Send the response message back 
         _messageClient.Send(response, "UserTweetsFetched");
     }
 

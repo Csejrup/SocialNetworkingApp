@@ -2,6 +2,7 @@ using InteractionService.Dtos;
 using InteractionService.Models;
 using InteractionService.Repositories;
 using Shared.Events;
+using Shared.Events.Saga;
 using Shared.Messaging;
 
 namespace InteractionService.Services
@@ -14,50 +15,84 @@ namespace InteractionService.Services
     {
         public async Task LikeTweetAsync(LikeDto likeDto)
         {
-            
-            var like = new Like
+            try
             {
-                UserId = likeDto.UserId,
-                TweetId = likeDto.TweetId,
-                LikedAt = DateTime.UtcNow
-            };
+                var like = new Like
+                {
+                    UserId = likeDto.UserId,
+                    TweetId = likeDto.TweetId,
+                    LikedAt = DateTime.UtcNow
+                };
 
-            await likeRepository.AddLikeAsync(like);
+                await likeRepository.AddLikeAsync(like);
 
-            // Publish a "TweetLiked" event to RabbitMQ
-            var tweetEvent = new TweetEvent
+                // Publish a "TweetLiked" event
+                var tweetEvent = new TweetEvent
+                {
+                    UserId = likeDto.UserId,
+                    TweetId = likeDto.TweetId,
+                    EventType = "TweetLiked"
+                };
+
+                messageClient.Send(tweetEvent, "TweetLiked");
+            }
+            catch (Exception ex)
             {
-                UserId = likeDto.UserId,
-                TweetId = likeDto.TweetId,
-                EventType = "TweetLiked"
-            };
+                // Publish a compensating event
+                var failureEvent = new TweetLikeFailedEvent
+                {
+                    UserId = likeDto.UserId,
+                    TweetId = likeDto.TweetId,
+                    Reason = ex.Message
+                };
 
-            messageClient.Send(tweetEvent, "TweetLiked");
+                messageClient.Send(failureEvent, "TweetLikeFailed");
+                throw; // Re-throw exception
+            }
         }
+
 
         public async Task CommentOnTweetAsync(CommentDto commentDto)
         {
-            var comment = new Comment
+            try
             {
-                UserId = commentDto.UserId,
-                TweetId = commentDto.TweetId,
-                Content = commentDto.Content,
-                CommentedAt = DateTime.UtcNow
-            };
+                var comment = new Comment
+                {
+                    UserId = commentDto.UserId,
+                    TweetId = commentDto.TweetId,
+                    Content = commentDto.Content,
+                    CommentedAt = DateTime.UtcNow
+                };
 
-            await commentRepository.AddCommentAsync(comment);
+                await commentRepository.AddCommentAsync(comment);
 
-            // Publish a "TweetCommented" event to RabbitMQ
-            var tweetEvent = new TweetEvent
+                // Publish a "TweetCommented"
+                var tweetEvent = new TweetEvent
+                {
+                    UserId = commentDto.UserId,
+                    TweetId = commentDto.TweetId,
+                    Content = commentDto.Content,
+                    EventType = "TweetCommented"
+                };
+
+                messageClient.Send(tweetEvent, "TweetCommented");
+            }
+            catch (Exception ex)
             {
-                UserId = commentDto.UserId,
-                TweetId = commentDto.TweetId,
-                Content = commentDto.Content,
-                EventType = "TweetCommented"
-            };
+                // Publish a compensating event
+                var failureEvent = new TweetCommentFailedEvent
+                {
+                    UserId = commentDto.UserId,
+                    TweetId = commentDto.TweetId,
+                    Content = commentDto.Content,
+                    Reason = ex.Message
+                };
 
-            messageClient.Send(tweetEvent, "TweetCommented");
+                messageClient.Send(failureEvent, "TweetCommentFailed");
+                throw;
+            }
         }
+
 
         public async Task<List<CommentDto>> GetCommentsForTweetAsync(Guid tweetId)
         {

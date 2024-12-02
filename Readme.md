@@ -4,6 +4,49 @@
 
 https://streamable.com/55eeg1
 
+## Design Patterns
+
+### Database-per-service pattern
+The system adopts the **Database-per-service pattern**, where each microservice manages its own private database. This design ensures:
+
+- **Data Isolation**: Each microservice has full control over its data schema and structure, reducing coupling between services.
+- **Scalability**: Services can scale independently without impacting others.
+- **Resilience**: Failures in one service's database do not propagate to others.
+
+#### Key Features:
+- **Dedicated Databases**: Each service (e.g., UserProfileService, TweetPostingService, and InteractionService) uses its own database to store its relevant data.
+- **Decoupled Architecture**: No direct database sharing occurs between services; all interactions happen via API calls or events.
+
+### Saga Pattern
+The system uses a **Choreography-based Saga Pattern** to manage distributed transactions across microservices. 
+Events are published and consumed via RabbitMQ to ensure eventual consistency. 
+Each service handles its local transactions and listens for relevant events.
+
+#### Key Features:
+Main Transactions: Each service performs a specific task, like posting a tweet or registering a user.
+Compensating Transactions: If a task fails, compensating events like TweetPostFailedEvent or UserProfileRegistrationFailedEvent are published to rollback changes.
+Code example:
+   ```bash
+   public async Task PostTweetAsync(TweetDto tweetDto)
+   {
+      try
+   {
+   // Main transaction: Save tweet
+   await _tweetRepository.AddTweetAsync(tweet);
+
+        // Publish success event
+        var tweetPostedEvent = new TweetPostedEvent { ... };
+        _messageClient.Send(tweetPostedEvent, "TweetPosted");
+    }
+    catch (Exception ex)
+    {
+        // Publish compensating event
+        var failureEvent = new TweetPostFailedEvent { ... };
+        _messageClient.Send(failureEvent, "TweetPostFailed");
+    }
+}
+   ```
+
 ## Getting Started
 
 This application uses Docker for containerization. Follow these steps to get started:

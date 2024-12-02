@@ -1,6 +1,19 @@
 {
   "Routes": [
     {
+      "DownstreamPathTemplate": "/api/authentication/authenticate",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "authenticationservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/authenticate",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    
+    {
       "DownstreamPathTemplate": "/api/tweetposting/post",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
@@ -10,7 +23,10 @@
         }
       ],
       "UpstreamPathTemplate": "/tweet/post",
-      "UpstreamHttpMethod": [ "POST" ]
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/tweetposting/user/{userId}",
@@ -18,7 +34,10 @@
         { "Host": "tweetpostingservice", "Port": 8080 }
       ],
       "UpstreamPathTemplate": "/tweet/user/{userId}",
-      "UpstreamHttpMethod": [ "GET" ]
+      "UpstreamHttpMethod": [ "GET" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/tweetposting/{tweetId}",
@@ -26,7 +45,10 @@
         { "Host": "tweetpostingservice", "Port": 8080 }
       ],
       "UpstreamPathTemplate": "/tweet/{tweetId}",
-      "UpstreamHttpMethod": [ "DELETE" ]
+      "UpstreamHttpMethod": [ "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/interaction/like",
@@ -38,7 +60,10 @@
         }
       ],
       "UpstreamPathTemplate": "/interaction/like",
-      "UpstreamHttpMethod": [ "POST" ]
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/interaction/comment",
@@ -50,7 +75,10 @@
         }
       ],
       "UpstreamPathTemplate": "/interaction/comment",
-      "UpstreamHttpMethod": [ "POST" ]
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/interaction/comments/{tweetId}",
@@ -62,7 +90,10 @@
         }
       ],
       "UpstreamPathTemplate": "/interaction/comments/{tweetId}",
-      "UpstreamHttpMethod": [ "GET" ]
+      "UpstreamHttpMethod": [ "GET" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/userprofile/register",
@@ -74,7 +105,10 @@
         }
       ],
       "UpstreamPathTemplate": "/userprofile/register",
-      "UpstreamHttpMethod": [ "POST" ]
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/userprofile/{id}",
@@ -86,7 +120,10 @@
         }
       ],
       "UpstreamPathTemplate": "/userprofile/{id}",
-      "UpstreamHttpMethod": [ "GET" ]
+      "UpstreamHttpMethod": [ "GET" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/userprofile/{userId}/tweets",
@@ -98,7 +135,10 @@
         }
       ],
       "UpstreamPathTemplate": "/userprofile/{userId}/tweets",
-      "UpstreamHttpMethod": [ "GET" ]
+      "UpstreamHttpMethod": [ "GET" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/userprofile/{userId}/follow/{userIdToFollow}",
@@ -110,7 +150,10 @@
         }
       ],
       "UpstreamPathTemplate": "/userprofile/{userId}/follow/{userIdToFollow}",
-      "UpstreamHttpMethod": [ "POST" ]
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/userprofile/{userId}/unfollow/{userIdToUnfollow}",
@@ -122,7 +165,10 @@
         }
       ],
       "UpstreamPathTemplate": "/userprofile/{userId}/unfollow/{userIdToUnfollow}",
-      "UpstreamHttpMethod": [ "POST" ]
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/userprofile/{userId}/followers",
@@ -134,10 +180,14 @@
         }
       ],
       "UpstreamPathTemplate": "/userprofile/{userId}/followers",
-      "UpstreamHttpMethod": [ "GET" ]
+      "UpstreamHttpMethod": [ "GET" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:8080"
+    "BaseUrl": "http://localhost:8080",
+    
   }
 }

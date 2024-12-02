@@ -8,10 +8,9 @@ using Ocelot.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
-
-
-// Load settings
+//load config
 var config = builder.Configuration.GetSection("Settings").Get<Settings>();
+// Add logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
@@ -36,10 +35,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     }
 );
 
-
-// Add Ocelot configuration
+// Add Ocelot config
 builder.Configuration.AddJsonFile("ocelot.json");
-
 
 // Add Ocelot services
 builder.Services.AddOcelot();

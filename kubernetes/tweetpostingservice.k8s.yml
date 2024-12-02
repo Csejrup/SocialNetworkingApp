@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tweetpostingservice
+  namespace: default
+  labels:
+    app: tweetpostingservice
+spec:
+  selector:
+    app: tweetpostingservice
+  ports:
+    - protocol: TCP
+      port: 8080         # Service is exposed on port 80
+      targetPort: 8080 # Forwards traffic to container's port 8083
+  type: ClusterIP       # Internal access only; use LoadBalancer for external access
+  
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tweetpostingservice
+  namespace: default
+  labels:
+    app: tweetpostingservice
+spec:
+  replicas: 3  # Ensures high availability with 3 instances of the application
+  selector:
+    matchLabels:
+      app: tweetpostingservice
+  template:
+    metadata:
+      labels:
+        app: tweetpostingservice
+    spec:
+      containers:
+        - name: tweetpostingservice
+          image: socialnetworkapp/tweetpostingservice 
+          imagePullPolicy: Never
+          env:  # Add environment variables if needed

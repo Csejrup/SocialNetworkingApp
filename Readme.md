@@ -121,9 +121,9 @@ curl -X DELETE "http://localhost:5001/tweetposting/22222222-2222-2222-2222-22222
 
 
 
-##Reliability 
+## Reliability 
 
-###Key Areas of Failure Identified
+### Key Areas of Failure Identified
 
 External Dependency on RabbitMQ: The system relies on RabbitMQ for event publishing, which can fail due to network issues, service downtime, or overload.
 
@@ -131,7 +131,7 @@ Lack of Fault Tolerance: The system lacked mechanisms to handle transient failur
 
 Single Points of Failure: Missing retry mechanisms or fallbacks for publishing events led to reliability concerns.
 
-Mitigations Implemented
+## Mitigations Implemented
 Circuit Breaker Policy
 A circuit breaker was implemented using Polly.
 
@@ -148,7 +148,7 @@ Retry Mechanism: Configured retries with exponential backoff using Polly policie
 Centralized Logging: Added detailed logging to capture errors and the state of the circuit breaker, aiding in monitoring and debugging.
 
 
-##How Reliability Was Improved
+## How Reliability Was Improved
 
 Prevent System Overload: The circuit breaker prevents the system from continually trying to send messages when RabbitMQ is unavailable.
 
@@ -156,7 +156,7 @@ Graceful Degradation: By handling failures effectively, the system avoids abrupt
 
 Resilience: Retry mechanisms ensure transient failures are resolved without user impact.
 
-#Future Improvements
+## Future Improvements
 
 Add Metrics Monitoring: Use a monitoring system to track circuit breaker states and RabbitMQ performance.
 Introduce Fallbacks: Implement storage for failed events to retry later.

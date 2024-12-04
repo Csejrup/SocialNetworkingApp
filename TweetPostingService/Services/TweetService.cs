@@ -50,6 +50,8 @@ namespace TweetPostingService.Services
             };
 
             // Send the response message back via RabbitMQ to the UserProfileService
+
+            //Curcuit breaker - errorhandling til hvis ikke tweet når ud 
             _messageClient.Send(response, "UserTweetsFetched");
         }
 

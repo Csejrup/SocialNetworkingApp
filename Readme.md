@@ -47,6 +47,47 @@ Code example:
 }
    ```
 
+
+## Reliability 
+
+### Key Areas of Failure Identified
+
+External Dependency on RabbitMQ: The system relies on RabbitMQ for event publishing, which can fail due to network issues, service downtime, or overload.
+
+Lack of Fault Tolerance: The system lacked mechanisms to handle transient failures or prevent overload from external dependencies.
+
+Single Points of Failure: Missing retry mechanisms or fallbacks for publishing events led to reliability concerns.
+
+## Mitigations Implemented
+Circuit Breaker Policy
+A circuit breaker was implemented using Polly.
+
+Open state: Stops requests when RabbitMQ is consistently failing.
+
+Half-open state: Tests the connection after a defined period.
+
+Closed state: Resumes normal operations once RabbitMQ stabilizes.
+
+Retry Mechanism: Configured retries with exponential backoff using Polly policies to handle transient failures without immediately failing the operation.
+
+
+
+Centralized Logging: Added detailed logging to capture errors and the state of the circuit breaker, aiding in monitoring and debugging.
+
+
+## How Reliability Was Improved
+
+Prevent System Overload: The circuit breaker prevents the system from continually trying to send messages when RabbitMQ is unavailable.
+
+Graceful Degradation: By handling failures effectively, the system avoids abrupt crashes or loss of functionality.
+
+Resilience: Retry mechanisms ensure transient failures are resolved without user impact.
+
+## Future Improvements
+
+Add Metrics Monitoring: Use a monitoring system to track circuit breaker states and RabbitMQ performance.
+Introduce Fallbacks: Implement storage for failed events to retry later.
+
 ## Getting Started
 
 This application uses Docker for containerization. Follow these steps to get started:

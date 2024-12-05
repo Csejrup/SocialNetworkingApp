@@ -2,7 +2,7 @@
 
 ## Architecture and System Setup explanation video
 
-https://streamable.com/55eeg1
+https://streamable.com/55eeg1 (assignment 1 video)
 
 ## Design Patterns
 
@@ -294,6 +294,7 @@ Closed state: Resumes normal operations once RabbitMQ stabilizes.
 
 Retry Mechanism: Configured retries with exponential backoff using Polly policies to handle transient failures without immediately failing the operation.
 
+
 Compensating Events:
 
 Added failure events (e.g., TweetPostFailedEvent and UserProfileUpdateFailedEvent) for scenarios where operations fail. This ensures downstream systems are informed and recovery actions can be taken.
@@ -312,13 +313,3 @@ Resilience: Retry mechanisms ensure transient failures are resolved without user
 
 Increased Fault Tolerance:Consistent application of retry policies reduced the impact of transient failures across the system.
 
-## Future Improvements
-
-Add Metrics Monitoring: Use a monitoring system to track circuit breaker states and RabbitMQ performance.
-Introduce Fallbacks: Implement storage for failed events to retry later.
-
-Expand Monitoring for Event Handlers:
-
-Introduce DLQs for Failed Messages:
-
-Store failed messages in dead-letter queues for later analysis and retry.

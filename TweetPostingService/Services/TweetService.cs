@@ -2,6 +2,7 @@ using Shared.Dtos;
 using Shared.Events;
 using Shared.Events.Saga;
 using Shared.Messaging;
+using Shared.Utils;
 using TweetPostingService.Models;
 using TweetPostingService.Repositories;
 using UserProfileService.Models;
@@ -76,29 +77,29 @@ public class TweetService : ITweetService
         {
             throw new Exception("Invalid user: The user does not exist.");
         }
-
-        // Create a new Tweet 
         var tweet = new Tweet
         {
             UserId = tweetDto.UserId,
             Content = tweetDto.Content,
             CreatedAt = DateTime.UtcNow
         };
-
-        // Save the tweet
-        await _tweetRepository.AddTweetAsync(tweet);
-        try
+        // Create Polly retry policy
+        var retryPolicy = PollyRetryPolicy.CreateRetryPolicy();
+        // Save the tweet with retry logic
+        await retryPolicy.ExecuteAsync(async () =>
         {
-
-            // Publish the TweetPosted event
-            
-            var tweetPostedEvent = new TweetPostedEvent
+            await _tweetRepository.AddTweetAsync(tweet);
+        });
+        // Publish the TweetPosted event with retry logic
+        await retryPolicy.ExecuteAsync(async () =>
             {
-                TweetId = tweet.Id,
-                UserId = tweet.UserId,
-                Content = tweet.Content
-            };
-            _messageClient.Send(tweetPostedEvent, "TweetPosted");
+                var tweetPostedEvent = new TweetPostedEvent
+                {
+                    TweetId = tweet.Id,
+                    UserId = tweet.UserId,
+                    Content = tweet.Content
+                };
+                _messageClient.Send(tweetPostedEvent, "TweetPosted");
         }
         catch (Exception ex)
         {

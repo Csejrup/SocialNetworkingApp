@@ -7,7 +7,7 @@ public static class PollyRetryPolicy
   public static AsyncRetryPolicy CreateRetryPolicy()
   {
     return Policy
-      .Handle<Exception>() // You can specify specific exceptions, e.g., SqlException
+      .Handle<Exception>() 
       .WaitAndRetryAsync(
         retryCount: 3,
         sleepDurationProvider: retryAttempt => TimeSpan.FromMilliseconds(500 * retryAttempt), // Exponential backoff

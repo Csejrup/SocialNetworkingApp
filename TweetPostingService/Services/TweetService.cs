@@ -65,13 +65,13 @@ public class TweetService : ITweetService
             }).ToList()
         };
 
-        // Send the response message back 
+       
         _messageClient.Send(response, "UserTweetsFetched");
     }
 
     public async Task PostTweetAsync(TweetDto tweetDto)
     {
-        // Validate if the user exists in the local cache
+   
         var userProfile = await _userCacheRepository.GetUserProfileAsync(tweetDto.UserId);
         if (userProfile == null)
         {
@@ -85,12 +85,12 @@ public class TweetService : ITweetService
         };
         // Create Polly retry policy
         var retryPolicy = PollyRetryPolicy.CreateRetryPolicy();
-        // Save the tweet with retry logic
+     
         await retryPolicy.ExecuteAsync(async () =>
         {
             await _tweetRepository.AddTweetAsync(tweet);
         });
-        // Publish the TweetPosted event with retry logic
+       
         await retryPolicy.ExecuteAsync(async () =>
             {
                 var tweetPostedEvent = new TweetPostedEvent
@@ -132,17 +132,16 @@ public class TweetService : ITweetService
     {
         try
         {
-            // Fetch the tweet
+           
             var tweet = await _tweetRepository.GetTweetByIdAsync(tweetId);
             if (tweet == null || tweet.UserId != userId)
             {
                 throw new Exception("You can only delete your own tweets.");
             }
-
-            // Delete the tweet
+            
             await _tweetRepository.DeleteTweetAsync(tweet);
 
-            // Publish the TweetDeleted event
+          
             var tweetEvent = new TweetEvent
             {
                 UserId = tweet.UserId,
@@ -155,7 +154,7 @@ public class TweetService : ITweetService
         }
         catch (Exception ex)
         {
-            // Publish a compensating event if deletion fails
+          
             var failureEvent = new TweetDeleteFailedEvent
             {
                 TweetId = tweetId,

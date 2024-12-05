@@ -1,4 +1,6 @@
 using Shared.Dtos;
+using Shared.Events;
+using Shared.Events.Saga;
 using Shared.Messaging;
 using UserProfileService.Dtos;
 using UserProfileService.Models;
@@ -11,27 +13,44 @@ namespace UserProfileService.Services
     {
         public async Task<Guid> RegisterUserAsync(UserProfileDto userProfileDto)
         {
-            
-            var userProfile = new UserProfile
+            try
             {
-                Id = Guid.NewGuid(),
-                Username = userProfileDto.Username,
-                Email = userProfileDto.Email,
-                Bio = userProfileDto.Bio
-            };
+                var userProfile = new UserProfile
+                {
+                    Id = Guid.NewGuid(),
+                    Username = userProfileDto.Username,
+                    Email = userProfileDto.Email,
+                    Bio = userProfileDto.Bio
+                };
 
-            await userProfileRepository.AddUserProfileAsync(userProfile);
+                await userProfileRepository.AddUserProfileAsync(userProfile);
 
-            var message = new UserProfileUpdatedMessage
+                // Publish UserProfileUpdatedEvent
+                var userProfileUpdatedEvent = new UserProfileUpdatedEvent
+                {
+                    UserId = userProfile.Id,
+                    Username = userProfile.Username,
+                    Email = userProfile.Email
+                };
+
+                messageClient.Send(userProfileUpdatedEvent, "UserProfileUpdated");
+                return userProfile.Id;
+            }
+            catch (Exception ex)
             {
-                UserId = userProfile.Id,
-                Name = userProfile.Username,
-                Email = userProfile.Email
-            };
+                // Publish compensating event
+                var failureEvent = new UserProfileRegistrationFailedEvent
+                {
+                    Username = userProfileDto.Username,
+                    Email = userProfileDto.Email,
+                    Reason = ex.Message
+                };
 
-            messageClient.Send(message, "UserProfileUpdatedMessage");
-            return userProfile.Id;
+                messageClient.Send(failureEvent, "UserProfileRegistrationFailed");
+                throw; // Re-throw exception
+            }
         }
+
 
         public async Task<UserProfileWithTweetsDto?> GetUserProfileWithTweetsAsync(Guid userId)
         {
@@ -39,12 +58,13 @@ namespace UserProfileService.Services
             var userProfile = await userProfileRepository.GetUserProfileByIdAsync(userId);
             if (userProfile == null) return null;
 
-            // Send a message to RabbitMQ requesting tweets for the user
-            var tweetRequest = new TweetRequestMessage
+            // Send a message to request tweets for the user
+            var tweetRequestEvent = new TweetRequestEvent
             {
                 UserId = userId
             };
-            messageClient.Send(tweetRequest, "RequestTweetsForUser");
+
+            messageClient.Send(tweetRequestEvent, "RequestTweetsForUser");
 
             var tweets = await ListenForTweetsResponse(userId, maxRetries: 3, timeoutInMilliseconds: 3000);
 
@@ -79,37 +99,36 @@ namespace UserProfileService.Services
                 {
                     using (var cts = new CancellationTokenSource(timeoutInMilliseconds))
                     {
-                        tweets = await ListenForTweetsResponse(userId, cts.Token);
+                        tweets = await ListenForTweetsResponseInternal(userId, cts.Token);
                     }
 
                     if (tweets != null)
                     {
-                        return tweets; 
+                        return tweets;
                     }
                 }
                 catch (TaskCanceledException)
                 {
-                    // Handle timeout by retrying
                     retryCount++;
                     Console.WriteLine($"Retry {retryCount}/{maxRetries} - No response received within timeout.");
                 }
             }
 
             Console.WriteLine("Failed to retrieve tweets after maximum retries.");
-            return null; 
+            return null;
         }
 
-        private Task<List<TweetDto>?> ListenForTweetsResponse(Guid userId, CancellationToken cancellationToken)
+        private Task<List<TweetDto>?> ListenForTweetsResponseInternal(Guid userId, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<List<TweetDto>?>();
-            List<TweetDto> tweets = [];
+            var tweets = new List<TweetDto>();
 
-            // Subscribe to the "UserTweetsFetched" event with a handler
-            messageClient.Listen<TweetResponseMessage>(response =>
+            // Listen for the "UserTweetsFetched" event
+            messageClient.Listen<TweetResponseEvent>(response =>
             {
                 if (response.UserId != userId) return;
                 tweets.AddRange(response.Tweets);
-                tcs.SetResult(tweets); 
+                tcs.SetResult(tweets);
             }, "UserTweetsFetched");
 
             cancellationToken.Register(() => tcs.TrySetCanceled());
@@ -132,13 +151,65 @@ namespace UserProfileService.Services
 
         public async Task FollowUserAsync(Guid userId, Guid userIdToFollow)
         {
-            await userProfileRepository.FollowUserAsync(userId, userIdToFollow);
+            try
+            {
+                await userProfileRepository.FollowUserAsync(userId, userIdToFollow);
+
+                // Publish UserFollowedEvent
+                var followEvent = new UserFollowedEvent
+                {
+                    UserId = userId,
+                    FollowedUserId = userIdToFollow
+                };
+
+                messageClient.Send(followEvent, "UserFollowed");
+            }
+            catch (Exception ex)
+            {
+                // Publish compensating event
+                var failureEvent = new UserFollowFailedEvent
+                {
+                    UserId = userId,
+                    FollowedUserId = userIdToFollow,
+                    Reason = ex.Message
+                };
+
+                messageClient.Send(failureEvent, "UserFollowFailed");
+                throw;
+            }
         }
+
 
         public async Task UnfollowUserAsync(Guid userId, Guid userIdToUnfollow)
         {
-            await userProfileRepository.UnfollowUserAsync(userId, userIdToUnfollow);
+            try
+            {
+                await userProfileRepository.UnfollowUserAsync(userId, userIdToUnfollow);
+
+                // Publish UserUnfollowedEvent
+                var unfollowEvent = new UserUnfollowedEvent
+                {
+                    UserId = userId,
+                    UnfollowedUserId = userIdToUnfollow
+                };
+
+                messageClient.Send(unfollowEvent, "UserUnfollowed");
+            }
+            catch (Exception ex)
+            {
+                // Publish compensating event
+                var failureEvent = new UserUnfollowFailedEvent
+                {
+                    UserId = userId,
+                    UnfollowedUserId = userIdToUnfollow,
+                    Reason = ex.Message
+                };
+
+                messageClient.Send(failureEvent, "UserUnfollowFailed");
+                throw;
+            }
         }
+
 
         public async Task<List<Guid>> GetFollowersAsync(Guid userId)
         {

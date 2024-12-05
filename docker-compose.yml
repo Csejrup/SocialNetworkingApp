@@ -20,6 +20,8 @@ services:
           memory: "512M"
       restart_policy:
         condition: on-failure
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
   tweetpostingservice:
     image: tweetpostingservice
@@ -36,6 +38,8 @@ services:
           memory: "512M"
       restart_policy:
         condition: on-failure
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
   interactionservice:
     image: interactionservice
@@ -50,6 +54,17 @@ services:
           memory: "512M"
       restart_policy:
         condition: on-failure
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+        
+  authenticationservice:
+    build:
+      context: .
+      dockerfile: AuthenticationService/Dockerfile
+    deploy:
+      replicas: 1  
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
   apigateway:
     image: apigateway
@@ -66,3 +81,5 @@ services:
           memory: "512M"
       restart_policy:
         condition: on-failure
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development

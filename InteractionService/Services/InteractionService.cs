@@ -2,17 +2,33 @@ using InteractionService.Dtos;
 using InteractionService.Models;
 using InteractionService.Repositories;
 using Shared.Events;
-using Shared.Events.Saga;
 using Shared.Messaging;
+using Polly.Retry;
+using Shared.Events.Saga;
+using Shared.Utils;
 
 namespace InteractionService.Services
 {
-    public class InteractionService(
-        ILikeRepository likeRepository,
-        ICommentRepository commentRepository,
-        IMessageClient messageClient)
-        : IInteractionService
+    public class InteractionService : IInteractionService
     {
+        private readonly ILikeRepository _likeRepository;
+        private readonly ICommentRepository _commentRepository;
+        private readonly IMessageClient _messageClient;
+        private readonly AsyncRetryPolicy _retryPolicy;
+
+        public InteractionService(
+            ILikeRepository likeRepository,
+            ICommentRepository commentRepository,
+            IMessageClient messageClient)
+        {
+            _likeRepository = likeRepository;
+            _commentRepository = commentRepository;
+            _messageClient = messageClient;
+
+            // Initialize retry policy
+            _retryPolicy = PollyRetryPolicy.CreateRetryPolicy();
+        }
+
         public async Task LikeTweetAsync(LikeDto likeDto)
         {
             try
@@ -24,9 +40,12 @@ namespace InteractionService.Services
                     LikedAt = DateTime.UtcNow
                 };
 
-                await likeRepository.AddLikeAsync(like);
+                await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    await Task.Run(() => _likeRepository.AddLikeAsync(like));  // Ensure it is wrapped in Task.Run
+                });
 
-                // Publish a "TweetLiked" event
+                // Publish a "TweetLiked" event with retry logic
                 var tweetEvent = new TweetEvent
                 {
                     UserId = likeDto.UserId,
@@ -34,7 +53,10 @@ namespace InteractionService.Services
                     EventType = "TweetLiked"
                 };
 
-                messageClient.Send(tweetEvent, "TweetLiked");
+                await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    await Task.Run(() => _messageClient.Send(tweetEvent, "TweetLiked"));  // Ensure it is wrapped in Task.Run
+                });
             }
             catch (Exception ex)
             {
@@ -46,11 +68,13 @@ namespace InteractionService.Services
                     Reason = ex.Message
                 };
 
-                messageClient.Send(failureEvent, "TweetLikeFailed");
+                await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    await Task.Run(() => _messageClient.Send(failureEvent, "TweetLikeFailed"));  // Ensure it is wrapped in Task.Run
+                });
                 throw; // Re-throw exception
             }
         }
-
 
         public async Task CommentOnTweetAsync(CommentDto commentDto)
         {
@@ -64,9 +88,12 @@ namespace InteractionService.Services
                     CommentedAt = DateTime.UtcNow
                 };
 
-                await commentRepository.AddCommentAsync(comment);
+                await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    await Task.Run(() => _commentRepository.AddCommentAsync(comment));  // Ensure it is wrapped in Task.Run
+                });
 
-                // Publish a "TweetCommented"
+                // Publish a "TweetCommented" event
                 var tweetEvent = new TweetEvent
                 {
                     UserId = commentDto.UserId,
@@ -75,7 +102,10 @@ namespace InteractionService.Services
                     EventType = "TweetCommented"
                 };
 
-                messageClient.Send(tweetEvent, "TweetCommented");
+                await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    await Task.Run(() => _messageClient.Send(tweetEvent, "TweetCommented"));  // Ensure it is wrapped in Task.Run
+                });
             }
             catch (Exception ex)
             {
@@ -88,15 +118,20 @@ namespace InteractionService.Services
                     Reason = ex.Message
                 };
 
-                messageClient.Send(failureEvent, "TweetCommentFailed");
+                await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    await Task.Run(() => _messageClient.Send(failureEvent, "TweetCommentFailed"));  // Ensure it is wrapped in Task.Run
+                });
                 throw;
             }
         }
 
-
         public async Task<List<CommentDto>> GetCommentsForTweetAsync(Guid tweetId)
         {
-            var comments = await commentRepository.GetCommentsByTweetIdAsync(tweetId);
+            var comments = await _retryPolicy.ExecuteAsync(async () =>
+            {
+                return await Task.Run(() => _commentRepository.GetCommentsByTweetIdAsync(tweetId));  // Ensure it is wrapped in Task.Run
+            });
 
             return comments.Select(c => new CommentDto
             {

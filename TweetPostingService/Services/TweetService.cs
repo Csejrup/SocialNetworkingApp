@@ -2,6 +2,7 @@ using Shared.Dtos;
 using Shared.Events;
 using Shared.Events.Saga;
 using Shared.Messaging;
+using Shared.Utils;
 using TweetPostingService.Models;
 using TweetPostingService.Repositories;
 using UserProfileService.Models;
@@ -64,41 +65,41 @@ public class TweetService : ITweetService
             }).ToList()
         };
 
-        // Send the response message back 
+       
         _messageClient.Send(response, "UserTweetsFetched");
     }
 
     public async Task PostTweetAsync(TweetDto tweetDto)
     {
-        // Validate if the user exists in the local cache
+   
         var userProfile = await _userCacheRepository.GetUserProfileAsync(tweetDto.UserId);
         if (userProfile == null)
         {
             throw new Exception("Invalid user: The user does not exist.");
         }
-
-        // Create a new Tweet 
         var tweet = new Tweet
         {
             UserId = tweetDto.UserId,
             Content = tweetDto.Content,
             CreatedAt = DateTime.UtcNow
         };
-
-        // Save the tweet
-        await _tweetRepository.AddTweetAsync(tweet);
-        try
+        // Create Polly retry policy
+        var retryPolicy = PollyRetryPolicy.CreateRetryPolicy();
+     
+        await retryPolicy.ExecuteAsync(async () =>
         {
-
-            // Publish the TweetPosted event
-            
-            var tweetPostedEvent = new TweetPostedEvent
+            await _tweetRepository.AddTweetAsync(tweet);
+        });
+       
+        await retryPolicy.ExecuteAsync(async () =>
             {
-                TweetId = tweet.Id,
-                UserId = tweet.UserId,
-                Content = tweet.Content
-            };
-            _messageClient.Send(tweetPostedEvent, "TweetPosted");
+                var tweetPostedEvent = new TweetPostedEvent
+                {
+                    TweetId = tweet.Id,
+                    UserId = tweet.UserId,
+                    Content = tweet.Content
+                };
+                _messageClient.Send(tweetPostedEvent, "TweetPosted");
         }
         catch (Exception ex)
         {
@@ -131,17 +132,16 @@ public class TweetService : ITweetService
     {
         try
         {
-            // Fetch the tweet
+           
             var tweet = await _tweetRepository.GetTweetByIdAsync(tweetId);
             if (tweet == null || tweet.UserId != userId)
             {
                 throw new Exception("You can only delete your own tweets.");
             }
-
-            // Delete the tweet
+            
             await _tweetRepository.DeleteTweetAsync(tweet);
 
-            // Publish the TweetDeleted event
+          
             var tweetEvent = new TweetEvent
             {
                 UserId = tweet.UserId,
@@ -154,7 +154,7 @@ public class TweetService : ITweetService
         }
         catch (Exception ex)
         {
-            // Publish a compensating event if deletion fails
+          
             var failureEvent = new TweetDeleteFailedEvent
             {
                 TweetId = tweetId,

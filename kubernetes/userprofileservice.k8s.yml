@@ -1,3 +1,12 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: userprofileservice-sa
+  namespace: default
+
+---
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -9,10 +18,10 @@ spec:
     app: userprofileservice
   ports:
     - protocol: TCP
-      port: 8080         # Service is exposed on port 80
-      targetPort: 8080 # Forwards traffic to container's port 8083
-  type: ClusterIP       # Internal access only; 
-  
+      port: 8080         # Service is exposed on port 8080
+      targetPort: 8080   # Forwards traffic to container's port 8080
+  type: ClusterIP         # Internal access only
+
 ---
 
 apiVersion: apps/v1
@@ -31,9 +40,40 @@ spec:
       labels:
         app: userprofileservice
     spec:
+      serviceAccountName: userprofileservice-sa  # Use the defined ServiceAccount
       containers:
         - name: userprofileservice
-          image: socailnetworkapp/userprofileservice 
+          image: socialnetworkapp/userprofileservice
           imagePullPolicy: Never
-          env:  # Add environment variables if needed
-        
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: userprofileservice-allow-specific-traffic
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: userprofileservice
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: # Allow traffic only from API Gateway
+            matchLabels:
+              app: apigateway
+        - podSelector: # Allow traffic from TweetPostingService
+            matchLabels:
+              app: tweetpostingservice
+        - podSelector: # Allow traffic from RabbitMQ
+            matchLabels:
+              app: rabbitmq

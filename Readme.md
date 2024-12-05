@@ -12,10 +12,24 @@ The system adopts the **Database-per-service pattern**, where each microservice 
 - **Data Isolation**: Each microservice has full control over its data schema and structure, reducing coupling between services.
 - **Scalability**: Services can scale independently without impacting others.
 - **Resilience**: Failures in one service's database do not propagate to others.
-
 #### Key Features:
 - **Dedicated Databases**: Each service (e.g., UserProfileService, TweetPostingService, and InteractionService) uses its own database to store its relevant data.
 - **Decoupled Architecture**: No direct database sharing occurs between services; all interactions happen via API calls or events.
+
+### Event-Driven Architecture
+The system follows an Event-Driven Architecture, leveraging RabbitMQ as the message broker for communication between microservices. This pattern decouples services, enabling asynchronous communication and improving scalability.
+
+* **Event Publishing:** Services publish domain events to RabbitMQ after performing their local operations. For example: TweetPostedEvent from TweetPostingService when a tweet is created.
+UserProfileUpdatedEvent from UserProfileService when a user updates their profile.
+* **Event Consumption:** Services listen to relevant events and perform necessary actions. For example:
+
+* InteractionService listens for TweetPostedEvent to enable interactions like likes and comments.
+* UserProfileService listens for TweetDeletedEvent to update user activity records.
+#### Key Features:
+* **Asynchronous Communication:** Services interact by publishing and consuming events, avoiding direct synchronous calls.
+* **Scalability:** Independent scaling of services is possible as they are loosely coupled.
+* **Fault Isolation:** Failures in one service do not directly impact others.
+
 
 ### Saga Pattern
 The system uses a **Choreography-based Saga Pattern** to manage distributed transactions across microservices. 
@@ -46,47 +60,56 @@ Code example:
     }
 }
    ```
-
-
 ## Reliability 
 
 ### Key Areas of Failure Identified
 
-External Dependency on RabbitMQ: The system relies on RabbitMQ for event publishing, which can fail due to network issues, service downtime, or overload.
+**External Dependency on RabbitMQ:** The system relies on RabbitMQ for event publishing, which can fail due to network issues, service downtime, or overload.
 
-Lack of Fault Tolerance: The system lacked mechanisms to handle transient failures or prevent overload from external dependencies.
+**Lack of Fault Tolerance:** The system lacked mechanisms to handle transient failures or prevent overload from external dependencies.
 
-Single Points of Failure: Missing retry mechanisms or fallbacks for publishing events led to reliability concerns.
+**Single Points of Failure:** Missing retry mechanisms or fallbacks for publishing events led to reliability concerns.
 
 ## Mitigations Implemented
 Circuit Breaker Policy
 A circuit breaker was implemented using Polly.
 
-Open state: Stops requests when RabbitMQ is consistently failing.
+**Open state**: Stops requests when RabbitMQ is consistently failing.
 
-Half-open state: Tests the connection after a defined period.
+**Half-open state**: Tests the connection after a defined period.
 
-Closed state: Resumes normal operations once RabbitMQ stabilizes.
+**Closed state**: Resumes normal operations once RabbitMQ stabilizes.
 
-Retry Mechanism: Configured retries with exponential backoff using Polly policies to handle transient failures without immediately failing the operation.
-
-
-
-Centralized Logging: Added detailed logging to capture errors and the state of the circuit breaker, aiding in monitoring and debugging.
+**Retry Mechanism**: Configured retries with exponential backoff using Polly policies to handle transient failures without immediately failing the operation.
 
 
 ## How Reliability Was Improved
 
-Prevent System Overload: The circuit breaker prevents the system from continually trying to send messages when RabbitMQ is unavailable.
+**Prevent System Overload**: The circuit breaker prevents the system from continually trying to send messages when RabbitMQ is unavailable.
 
-Graceful Degradation: By handling failures effectively, the system avoids abrupt crashes or loss of functionality.
+**Graceful Degradation**: By handling failures effectively, the system avoids abrupt crashes or loss of functionality.
 
-Resilience: Retry mechanisms ensure transient failures are resolved without user impact.
+**Resilience**: Retry mechanisms ensure transient failures are resolved without user impact.
 
-## Future Improvements
+## Security in the Social Networking App
+### Inter-Service Communication Security (RabbitMQ)
+*    **Restricted Ingress Traffic:** Each service communicates with RabbitMQ through specific ingress rules enforced by Kubernetes NetworkPolicies. These rules ensure that only authorized services (e.g., UserProfileService, TweetPostingService, InteractionService, and APIGateway) can interact with RabbitMQ.
+*    **Authentication with Credentials:** RabbitMQ is secured using environment variables (RABBITMQ_USER and RABBITMQ_PASS) to authenticate all services. These credentials are stored securely as Kubernetes Secrets and mounted into the service pods.
+*    **Cluster-Internal Communication:** All RabbitMQ communication happens within the Kubernetes cluster (ClusterIP type), preventing external access to the message broker.
 
-Add Metrics Monitoring: Use a monitoring system to track circuit breaker states and RabbitMQ performance.
-Introduce Fallbacks: Implement storage for failed events to retry later.
+### API Gateway Security
+**JWT Authentication:** The APIGateway authenticates all external client requests using JSON Web Tokens (JWT). Only authenticated requests are forwarded to the backend microservices.
+
+### Isolation of Services
+**ServiceAccount Usage:** Each service (e.g., UserProfileService, TweetPostingService) operates under its own ServiceAccount, ensuring minimal permissions are granted to each service.
+
+**Network Segmentation:** Using Kubernetes NetworkPolicies, each service can only communicate with explicitly defined services. For example:
+* **TweetPostingService** can communicate with RabbitMQ and **UserProfileService**.
+* **InteractionService** can communicate with RabbitMQ and **TweetPostingService**.
+* **InteractionService** can communicate with RabbitMQ for sending and receiving events, such as likes and comments. Can  communicate with **TweetPostingService** for fetching or updating tweet-related data.
+
+
+This limits the blast radius in case of a breach or misconfiguration.
 
 ## Getting Started
 
@@ -137,11 +160,11 @@ This application uses Docker for containerization. Follow these steps to get sta
 
 3. Add the services to kubernetes
    ```bash
-   kubectl apply -f kubernetes/rabbitmq.yaml
-   kubectl apply -f kubernetes/userprofileservice.yaml
-   kubectl apply -f kubernetes/tweetpostingservice.yaml
-   kubectl apply -f kubernetes/interactionservice.yaml
-   kubectl apply -f kubernetes/apigateway.yaml
+   kubectl apply -f kubernetes/rabbitmq.k8s.yaml
+   kubectl apply -f kubernetes/userprofileservice.k8s.yaml
+   kubectl apply -f kubernetes/tweetpostingservice.k8s.yaml
+   kubectl apply -f kubernetes/interactionservice.k8s.yaml
+   kubectl apply -f kubernetes/apigateway.k8s.yaml
    ```
 4. Start the kubernetes´
    ```bash

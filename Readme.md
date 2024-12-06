@@ -119,6 +119,7 @@ This application uses Docker for containerization. Follow these steps to get sta
 
 - Ensure you have Docker installed on your machine. You can download and install Docker from [here](https://www.docker.com/get-started).
 - Make sure Docker is running.
+- Make sure you have Kubernetes running. 
 
 ### Running the Application with docker compose
 
@@ -152,24 +153,18 @@ This application uses Docker for containerization. Follow these steps to get sta
 2. Build and add the images to a local docker registry:
 
    ```bash
-   docker build . -f UserProfileService/Dockerfile -t socialnetworkingapp/userprofileservice
-   docker build . -f TweetPostingService/Dockerfile -t socialnetworkingapp/tweetpostingservice
-   docker build . -f InteractionService/Dockerfile -t socialnetworkingapp/interactionservice
-   docker build . -f APIGateway/Dockerfile -t socialnetworkingapp/apigateway
+   docker build . -f UserProfileService/Dockerfile -t socialnetworkapp/userprofileservice
+   docker build . -f TweetPostingService/Dockerfile -t socialnetworkapp/tweetpostingservice
+   docker build . -f InteractionService/Dockerfile -t socialnetworkapp/interactionservice
+   docker build . -f APIGateway/Dockerfile -t socialnetworkapp/apigateway
+   docker build . -f AuthenticationService/Dockerfile -t socialnetworkapp/authenticationservice
    ```
 
 3. Add the services to kubernetes
    ```bash
-   kubectl apply -f kubernetes/rabbitmq.k8s.yaml
-   kubectl apply -f kubernetes/userprofileservice.k8s.yaml
-   kubectl apply -f kubernetes/tweetpostingservice.k8s.yaml
-   kubectl apply -f kubernetes/interactionservice.k8s.yaml
-   kubectl apply -f kubernetes/apigateway.k8s.yaml
+   kubectl apply -f 'kubernetes/*.yml'
    ```
-4. Start the kubernetes´
-   ```bash
-   kubectl proxy
-   ```
+
 
 ## API Endpoints Testing via cURL
 

@@ -98,8 +98,39 @@ A circuit breaker was implemented using Polly.
 *    **Cluster-Internal Communication:** All RabbitMQ communication happens within the Kubernetes cluster (ClusterIP type), preventing external access to the message broker.
 
 ### API Gateway Security
-**JWT Authentication:** The APIGateway authenticates all external client requests using JSON Web Tokens (JWT). Only authenticated requests are forwarded to the backend microservices.
+**JWT Authentication:** The **APIGateway** authenticates all external client requests using JSON Web Tokens (JWT). Only authenticated requests are forwarded to the backend microservices. This ensures that only valid users can access the services.
 
+The JWT-based authentication is configured using **Ocelot**, the API Gateway framework in our system. Below is a snippet of the `ocelot.json` configuration file used to define the routing and authentication behavior:
+```json lines
+
+    {
+      "DownstreamPathTemplate": "/api/authentication/authenticate",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "authenticationservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/authenticate",
+      "UpstreamHttpMethod": ["POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/tweetposting/post",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "tweetpostingservice",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/tweet/post",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    }
+```
 ### Isolation of Services
 **ServiceAccount Usage:** Each service (e.g., UserProfileService, TweetPostingService) operates under its own ServiceAccount, ensuring minimal permissions are granted to each service.
 
@@ -107,7 +138,6 @@ A circuit breaker was implemented using Polly.
 * **TweetPostingService** can communicate with RabbitMQ and **UserProfileService**.
 * **InteractionService** can communicate with RabbitMQ and **TweetPostingService**.
 * **InteractionService** can communicate with RabbitMQ for sending and receiving events, such as likes and comments. Can  communicate with **TweetPostingService** for fetching or updating tweet-related data.
-
 
 This limits the blast radius in case of a breach or misconfiguration.
 
